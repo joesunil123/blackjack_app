@@ -1,0 +1,13 @@
+1. Overview
+In a standard Blackjack game, player positions are arranged in a semi-circle around the dealer. The dealer is at the center of the table facing the players, and positions are numbered from left to right from the dealer’s perspective.
+For this application, we will limit the game to 5 players +1 dealer.
+2. Player Position Breakdown
+Position 1 (Far Left of the Dealer): This player acts first in every round and has no information about how others will play their hands. Sometimes called "First Base".
+Position 2 to 4 (Middle): Plays after Position 1, with slightly more information on table trends and outcomes.
+Position 5 (Far Right of the Dealer): Also known as "Third Base", this is the final player to act before the dealer reveals or finishes their hand. This position is often seen as strategic and carries an informal sense of responsibility, as their decisions can influence whether the dealer busts or wins.
+3. Strategy Implications
+Early Positions (1–2): Players must decide their moves without knowing what others will do. This can make decisions feel riskier or less informed.
+Middle Positions (3–4): These players can adjust their strategy based on earlier plays and developing trends on the table.
+Late Positions (5): These players have the advantage of full visibility on most prior decisions. Especially in Position 6, players may choose to play conservatively or aggressively to affect the dealer’s potential outcome.
+4. Conclusion
+While seat position doesn’t affect the mathematical odds in Blackjack, it can impact your perception of control, timing, and confidence. Many experienced players prefer sitting in later positions—especially Third Base—to observe the flow and potentially influence the outcome.

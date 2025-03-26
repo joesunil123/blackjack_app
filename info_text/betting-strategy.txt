@@ -1,0 +1,47 @@
+1. Martingale System
+The Martingale system is a progressive betting strategy where a player doubles their bet after every loss. The idea is that a single win will recover all previous losses plus yield a profit equal to the original bet.
+Example:
+- Bet $10 and lose → Next bet: $20
+- Lose again → Next bet: $40
+- Lose again → Next bet: $80
+- Win → Recover all $70 in losses + $10 profit
+Pros:
+- Simple to understand and apply
+- Mathematically sound in theory (with infinite funds and no table limits)
+Cons:
+- Requires a large bankroll to withstand losing streaks
+- Most Blackjack tables have maximum bet limits, making full recovery impossible in long losing streaks
+
+2. Reverse Martingale System (Paroli System)
+The Reverse Martingale system is the opposite: you **increase your bet after a win** and **return to your base bet after a loss**. The goal is to capitalize on winning streaks while limiting losses during downswings.
+Example:
+- Start with $10 → Win → Next bet: $20
+- Win again → Next bet: $40
+- Lose → Reset to $10
+Pros:
+- Less risky than Martingale in terms of bankroll exposure
+- Takes advantage of winning streaks
+Cons:
+- One loss can wipe out the gains of a streak
+- Requires discipline to lock in profits and reset appropriately
+
+3. Count-Based Betting Strategy
+This strategy adjusts your bet size based on the current count from a card counting system (like Hi-Lo or Omega II). The idea is to bet more when the count is favorable (i.e., the deck is rich in 10s and Aces) and bet less or minimum when the count is poor.
+Example:
+- You’re using the Hi-Lo system and the true count rises to +4.
+- This indicates a higher probability of strong player hands and blackjacks.
+- You increase your bet from the table minimum of $10 to $50 or more, depending on your bankroll and risk tolerance.
+- When the count drops to 0 or goes negative, you reduce your bet back to the minimum.
+Pros:
+- Statistically proven to provide a player advantage
+- Efficient use of bankroll with strategic bet sizing
+Cons:
+- Requires mastery of a counting system
+- Attracts more attention from the casino and may lead to countermeasures
+
+4. Which Should You Use?
+Each system has its own benefits and fits different risk profiles:
+- Use **Martingale** if you’re confident managing risk and table limits
+- Use **Reverse Martingale** if you prefer protecting your bankroll while aiming for hot streaks
+- Use **Count-Based** if you are comfortable and skilled in counting techniques. This option gives you an edge against the house
+Remember: Betting systems don’t guarantee profit — smart play, sound strategy, and self-control matter most at the table.

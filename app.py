@@ -4,6 +4,7 @@ import sqlite3
 import os
 import processing as proc
 from flask_socketio import SocketIO, emit
+import eventlet
 
 
 app = Flask(__name__)
@@ -21,13 +22,6 @@ def index():
 # Intermediate page to clear the database
 @app.route('/clear_and_home')
 def clear_and_home():
-    # TODO: Might want to make it so that this is only run once instead of everytime we reload the page
-    conn = get_db_connection()
-    with open("./db/schemas.sql") as file:
-        conn.executescript(file.read())
-    
-    conn.commit()
-    conn.close()
     return redirect(url_for("index"))
 
 # Page where game settings are inputted
@@ -91,40 +85,65 @@ def pre_round():
 
 @app.route('/curr_game', methods=('GET', 'POST'))
 def curr_game():
-    if request.method == 'POST':
-        outcome = request.form.get('result')
-        if outcome == 'win':
-            outcome = proc.Outcome.WIN
-        elif outcome == 'push':
-            outcome = proc.Outcome.PUSH
-        elif outcome == 'lose':
-            outcome = proc.Outcome.LOSE
-        else:
-            outcome = proc.Outcome.BJ
-        
-        game_state.round_outcome(outcome=outcome)
-        return redirect(url_for("pre_round"))
-
     # Extract data from game state
     winnings_history = list(game_state.get_winnings())
     rounds = [f"{i+1}" for i in range(len(winnings_history))]
     curr_bet = game_state.get_current_bet()
+    player_hands = game_state.get_player_hands()
+    optimal_actions, dealer_hand = game_state.get_optimal_play()
+
+    optimal_play = []
+    for i in range(len(optimal_actions)):
+        action = ""
+        match optimal_actions[i]:
+            case proc.Action.STAND:
+                action = "Stand"
+            case proc.Action.HIT:
+                action = "Hit"
+            case proc.Action.DOUBLE:
+                action = "Double"
+            case _:
+                action - "Unspecified"
+        optimal_play.append({"id": i+1, "action": action})
 
     return render_template(
         "curr_game.html",
         current_winnings=winnings_history[-1],
         winnings_history=winnings_history,
         rounds=rounds,
-        curr_bet=curr_bet
+        curr_bet=curr_bet,
+        dealer=dealer_hand,
+        player_hands=player_hands,
+        optimal_play=optimal_play
     )
 
+@app.route("/handle_hand_result", methods=["POST"])
+def handle_hand_result():
+    hand_id = request.form.get("hand_id", type=int)
+    outcome = request.form.get('result')
+    if outcome == 'win':
+        outcome = proc.Outcome.WIN
+    elif outcome == 'push':
+        outcome = proc.Outcome.PUSH
+    elif outcome == 'lose':
+        outcome = proc.Outcome.LOSE
+    elif outcome == "double":
+        outcome = proc.Outcome.DOUBLE
+    else:
+        outcome = proc.Outcome.BJ
+
+    if game_state.hand_outcome(outcome, hand_id-1):
+        return redirect(url_for("pre_round"))
+
+    return redirect(url_for("curr_game"))
 
 # Communication with ML model
 
-# @socketio.on('card_data')
-# def handle_card_data(data):
-#     # global game_state
-#     pass
+@socketio.on('update_hands')
+def handle_card_data(data):
+    # global game_state
+    print("Received hands", data)
+    game_state.update_hands(data)
 
         
         

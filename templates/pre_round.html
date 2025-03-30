@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Current Round</title>
+  <title>Pre-Round</title>
   <style>
     body {
       margin: 0;
@@ -65,46 +65,34 @@
           </div>
         </div>
 
-        <!-- Current Profits -->
-        <div class="mb-4 p-3 border rounded shadow-sm bg-light">
-          <label class="form-label fs-5">Current Bet:</label>
-          <p id="winnings-display" class="fs-2 fw-bold mb-0">{{ curr_bet }}</p>
-        </div>
-
-        <!-- Game Result -->
-        <div class="d-flex justify-content-between gap-2 mt-3">
-          <form action="{{ url_for('curr_game') }}" method="POST">
-            <input type="hidden" name="result" value="win">
-            <button type="submit" class="btn btn-success w-100">Win</button>
-          </form>
-        
-          <form action="{{ url_for('curr_game') }}" method="POST">
-            <input type="hidden" name="result" value="push">
-            <button type="submit" class="btn btn-secondary w-100">Push</button>
-          </form>
-        
-          <form action="{{ url_for('curr_game') }}" method="POST">
-            <input type="hidden" name="result" value="lose">
-            <button type="submit" class="btn btn-danger w-100">Lose</button>
-          </form>
-        
-          <form action="{{ url_for('curr_game') }}" method="POST">
-            <input type="hidden" name="result" value="bj">
-            <button type="submit" class="btn btn-warning w-100">BJ</button>
-          </form>
-        </div>
-
       </div>
       <div class="col-md-6 mb-4">
+        <!-- Bet Amount -->
+        <div class="p-3 border rounded shadow-sm bg-light">
+          <form id="bet-form" action="{{ url_for('pre_round') }}" method="POST">
+            <label for="bet-amount" class="form-label fs-5">Bet Amount:</label>
+            <div class="input-group input-group-lg">
+              <input 
+                type="number" 
+                class="form-control" 
+                id="bet-amount" 
+                name="bet-amount" 
+                placeholder="Enter amount..." 
+                required
+              >
+              <button class="btn btn-success" type="submit">Enter</button>
+            </div>
+          </form>
+        </div>
         <!-- Toggle Info Button -->
         <div class="text-end mt-3 mb-2">
-          <button id="toggleInfoBtn" class="btn btn-outline-secondary">+ Count/Optimal Play</button>
+          <button id="toggleInfoBtn" class="btn btn-outline-secondary">+ Optimal Bet</button>
         </div>
 
         <!-- Info Box -->
         <div id="infoBox" class="p-3 border rounded bg-light" style="display: none;">
-          <h5>Count/Optimal Play</h5>
-          <p>This box contains helpful information, tips, or dynamic game stats.</p>
+          <h5>Optimal Bet</h5>
+          <p>At this stage, using the {{ betting_strategy}} system, you should bet {{ optimal_bet}}</p>
         </div>
 
       </div>
@@ -131,7 +119,7 @@
       toggleBtn.addEventListener("click", function () {
         const isVisible = infoBox.style.display === "block";
         infoBox.style.display = isVisible ? "none" : "block";
-        toggleBtn.textContent = isVisible ? "+ Count/Optimal Play" : "−";
+        toggleBtn.textContent = isVisible ? "+ Optimal Bet" : "−";
       });
 
       // Chart.js

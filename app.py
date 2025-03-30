@@ -2,7 +2,7 @@ from flask import Flask, render_template, request, url_for, flash, redirect
 from datetime import datetime
 import sqlite3
 import os
-import processing.py
+import processing as proc
 from flask_socketio import SocketIO, emit
 
 
@@ -10,17 +10,17 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'your secret key' # should be a long random string: generate one
 socketio = SocketIO(app)
 
-game_state = processing.GameState()
+game_state = proc.GameState()
 
-# Actual app stuff
+# Pre-game pages
+# Application entry page
 @app.route('/')
 def index():
-    # This is the base screen showing begin
     return render_template('index.html')
 
+# Intermediate page to clear the database
 @app.route('/clear_and_home')
 def clear_and_home():
-
     # TODO: Might want to make it so that this is only run once instead of everytime we reload the page
     conn = get_db_connection()
     with open("./db/schemas.sql") as file:
@@ -30,12 +30,23 @@ def clear_and_home():
     conn.close()
     return redirect(url_for("index"))
 
+# Page where game settings are inputted
 @app.route('/game_settings', methods=('GET', 'POST'))
 def game_settings():
     if request.method == 'POST':
-        return redirect(url_for('curr_game'))
+        counting_technique = request.form.get('counting-technique')
+        betting_strategy = request.form.get('betting-strategy')
+        player_pos = request.form.get('player-position', type=int)
+        num_shoes = request.form.get('num-shoes', type=int)
+        unit_bet = request.form.get('unit-bet', type=int)
+
+        #TODO: Add Num shoes field to this page
+        game_state.start(counting_technique=counting_technique, betting_strategy=betting_strategy, player_pos=player_pos, num_shoes=num_shoes, unit_bet=unit_bet)
+
+        return redirect(url_for('pre_round'))
     return render_template('game_settings.html')
 
+# Information page
 @app.route('/info')
 def info():
     # This is the information page with a specific page
@@ -54,13 +65,58 @@ def info():
 
     return render_template('info.html',topic = topic,content=content)
 
+# Game pages
+# Page before the start of a round
+@app.route('/pre_round', methods=('GET', 'POST'))
+def pre_round():
+    if request.method == 'POST':
+        bet_amount = request.form.get('bet-amount', type=int)
+        game_state.place_bet(bet_amount)
+        return redirect(url_for("curr_game"))
+    
+    # Extract data from game state
+    winnings_history = list(game_state.get_winnings())
+    rounds = [f"{i+1}" for i in range(len(winnings_history))]
+    optimal_bet = game_state.get_optimal_bet()
+    betting_strategy = game_state.get_betting_mode()
+
+    return render_template(
+        "pre_round.html",
+        current_winnings=winnings_history[-1],
+        winnings_history=winnings_history,
+        rounds=rounds,
+        optimal_bet=optimal_bet,
+        betting_strategy=betting_strategy
+    )
+
 @app.route('/curr_game', methods=('GET', 'POST'))
 def curr_game():
     if request.method == 'POST':
-        # delete from database
-        pass
+        outcome = request.form.get('result')
+        if outcome == 'win':
+            outcome = proc.Outcome.WIN
+        elif outcome == 'push':
+            outcome = proc.Outcome.PUSH
+        elif outcome == 'lose':
+            outcome = proc.Outcome.LOSE
+        else:
+            outcome = proc.Outcome.BJ
+        
+        game_state.round_outcome(outcome=outcome)
+        return redirect(url_for("pre_round"))
 
-    return render_template('curr_game.html')
+    # Extract data from game state
+    winnings_history = list(game_state.get_winnings())
+    rounds = [f"{i+1}" for i in range(len(winnings_history))]
+    curr_bet = game_state.get_current_bet()
+
+    return render_template(
+        "curr_game.html",
+        current_winnings=winnings_history[-1],
+        winnings_history=winnings_history,
+        rounds=rounds,
+        curr_bet=curr_bet
+    )
 
 
 # Communication with ML model
@@ -70,75 +126,5 @@ def curr_game():
 #     # global game_state
 #     pass
 
-##### Helper functions
-
-
-def get_db_connection():
-    conn = sqlite3.connect('./db/data.db')
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-# Old stuff
-# @app.route('/create', methods=('GET', 'POST'))
-# def create():
-#     if request.method == 'POST':
-#         team_info = request.form['team-info']
-#         match_results = request.form['match-results']
-
-#         if not team_info:
-#             flash('Team info is required!')
-#         elif not match_results:
-#             flash('Match results are required!')
-#         else:
-#             conn = get_db_connection()
-
-#             # First perform for the the team details
-#             all_details, valid_input = enter_details(team_info, conn)
-#             if all_details == None:
-#                 if valid_input == 0:
-#                     flash('Malformed request!')
-#                 elif valid_input == 1:
-#                     flash('Invalid datetime format on one or more lines')
-#                 elif valid_input == 2:
-#                     flash('Invalid group on one or more teams')
-#                 elif valid_input == 3:
-#                     flash('Contains an already registered team OR group is too large')
-
-#             else:
-#                 for details in all_details:
-#                     conn.execute('INSERT INTO team_details (name, reg, group) VALUES (?, ?, ?)',
-#                                  (details[0], details[1], int(details[2])))
-
-#             match_details, valid_input = enter_matches()
-#             print("submitted form")
-            
-#             # conn.execute('INSERT INTO posts (title, content) VALUES (?, ?)',
-#             #              (title, content))
-#             # conn.commit()
-#             # conn.close()
-#             # return redirect(url_for('index'))
-#             pass
-
-#     return render_template('create.html')
-
-# @app.route('/edit', methods=('GET', 'POST'))
-# def edit():
-#     curr_info = {"team-info" : "string with curr team info", "match-results":"string with curr match results"}
-    
-#     if request.method == 'POST':
-#         team_info = request.form['team-info']
-#         match_results = request.form['match-results']
-
-#         if not team_info:
-#             flash('Team info is required!')
-#         elif not match_results:
-#             flash('Match results are required!')
-#         else:
-#             print("submitted form")
-#             # process and add to databse here!!
-#             pass
-
-#     return render_template('edit.html', curr_info=curr_info)
         
         

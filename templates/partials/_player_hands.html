@@ -1,0 +1,28 @@
+<turbo-stream action="replace" target="player-section">
+    <template>
+      <div id="player-section">
+        {% for hand in player_hands %}
+        <div class="p-3 border rounded bg-light">
+          <h5>Hand {{ hand.id }}:</h5>
+          <p>Showing {{ hand.hand }}</p>
+          <!-- buttons or info here -->
+        </div>
+        {% endfor %}
+
+        <!-- Toggle Info Button -->
+        <div class="text-end mt-3 mb-2">
+          <button id="toggleInfoBtn" class="btn btn-outline-secondary">+ Count/Optimal Play</button>
+        </div>
+
+        <!-- Info Box -->
+        <div id="infoBox" class="p-3 border rounded bg-light" style="display: none;">
+          <h5>Count/Optimal Play</h5>
+          <p>Count: {{ count }}</p>
+          {% for play in optimal_play %}
+          <p>Hand {{ play.id }}: Dealer shows {{ dealer }}, the optimal action is to {{ play.action }}</p>
+          {% endfor %}
+        </div>
+      </div>
+    </template>
+  </turbo-stream>
+  

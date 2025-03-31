@@ -1,21 +1,23 @@
-from flask import Flask, render_template, request, url_for, flash, redirect
+from flask import Flask, render_template, request, url_for, flash, redirect, jsonify
 from datetime import datetime
+from turbo_flask import Turbo
 import sqlite3
 import os
 import processing as proc
 from flask_socketio import SocketIO, emit
+from eventlet import wsgi
 import eventlet
 
-
+eventlet.monkey_patch()
 app = Flask(__name__)
+turbo = Turbo(app)
 app.config['SECRET_KEY'] = 'your secret key' # should be a long random string: generate one
-socketio = SocketIO(app)
-
+socketio = SocketIO(app, async_mode='eventlet')
 game_state = proc.GameState()
 
 # Pre-game pages
 # Application entry page
-@app.route('/')
+@app.route('/', methods=('GET', 'POST'))
 def index():
     return render_template('index.html')
 
@@ -90,21 +92,11 @@ def curr_game():
     rounds = [f"{i+1}" for i in range(len(winnings_history))]
     curr_bet = game_state.get_current_bet()
     player_hands = game_state.get_player_hands()
-    optimal_actions, dealer_hand = game_state.get_optimal_play()
+    optimal_actions, dealer_hand, count = game_state.get_processed_play()
 
     optimal_play = []
     for i in range(len(optimal_actions)):
-        action = ""
-        match optimal_actions[i]:
-            case proc.Action.STAND:
-                action = "Stand"
-            case proc.Action.HIT:
-                action = "Hit"
-            case proc.Action.DOUBLE:
-                action = "Double"
-            case _:
-                action - "Unspecified"
-        optimal_play.append({"id": i+1, "action": action})
+        optimal_play.append({"id": i+1, "action": optimal_actions[i]})
 
     return render_template(
         "curr_game.html",
@@ -114,7 +106,8 @@ def curr_game():
         curr_bet=curr_bet,
         dealer=dealer_hand,
         player_hands=player_hands,
-        optimal_play=optimal_play
+        optimal_play=optimal_play,
+        count=count
     )
 
 @app.route("/handle_hand_result", methods=["POST"])
@@ -139,11 +132,25 @@ def handle_hand_result():
 
 # Communication with ML model
 
-@socketio.on('update_hands')
+@socketio.on('card_data')
 def handle_card_data(data):
     # global game_state
     print("Received hands", data)
-    game_state.update_hands(data)
+    parsed_data = game_state.process_data(data)
+    print("Parsed: ", parsed_data)
+    game_state.update_hands(parsed_data)
+    player_hands = game_state.get_player_hands()
+    optimal_actions, dealer_hand, count = game_state.get_processed_play()
 
+    optimal_play = []
+    for i in range(len(optimal_actions)):
+        optimal_play.append({"id": i+1, "action": optimal_actions[i]})
+
+    html = render_template('partials/_player_hands.html', player_hands=player_hands, optimal_play=optimal_play, dealer=dealer_hand, count=count)
+    turbo.push(html)
+
+
+if __name__ == "__main__":
+    socketio.run(app, port=5050, debug=True)
         
         

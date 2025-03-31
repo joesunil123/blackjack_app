@@ -7,11 +7,11 @@ from collections import deque
 MAX_DISPLAY_WINNINGS = 10
 
 class Action(Enum):
-    STAND = 1
-    HIT = 2
-    SPLIT = 3
-    DOUBLE = 4
-    INSURANCE = 5
+    STAND = "Stand"
+    HIT = "Hit"
+    SPLIT = "Split"
+    DOUBLE = "Double"
+    INSURANCE = "Insutrance"
 
 class Outcome(Enum):
     WIN = 1
@@ -70,6 +70,64 @@ class GameState:
             9: {2: Action.STAND, 3: Action.STAND, 4:Action.STAND, 5: Action.STAND, 6: Action.STAND, 7: Action.STAND, 8: Action.STAND, 9: Action.STAND, 10: Action.STAND, 11: Action.STAND},
         }
 
+        self.hi_lo_deviations = {
+            # Insurance deviation
+            (0, 11): (Action.INSURANCE, 3),
+
+            # Stand deviations
+            (16, 10): (Action.STAND, 0),      # Stand on 16 vs 10 if count >= 0
+            (15, 10): (Action.STAND, 4),      # Stand on 15 vs 10 if count >= 4
+
+            # Double deviations
+            (10, 10): (Action.DOUBLE, 4),     # Double 10 vs 10 if count >= 4
+            (11, 11): (Action.DOUBLE, 1),     # Double 11 vs A if count >= 1
+            (9, 2): (Action.DOUBLE, 1),       # Double 9 vs 2 if count >= 1
+            (10, 11): (Action.DOUBLE, 3),      # Double 10 vs A if count >= 3
+            (9, 7): (Action.DOUBLE, 3),       # Double 9 vs 7 if count >= 3
+
+            # Hit deviations
+            (12, 2): (Action.STAND, 3),       # Stand on 12 vs 2 if count >= 3
+            (12, 3): (Action.STAND, 2),       # Stand on 12 vs 3 if count >= 2
+            (12, 4): (Action.STAND, 0),       # Stand on 12 vs 4 if count >= 0
+            (12, 5): (Action.STAND, -2),      # Stand on 12 vs 5 if count >= -2
+            (12, 6): (Action.STAND, -1),      # Stand on 12 vs 6 if count >= -1
+
+            #TODO: Once integration is done we can use this
+            # # Split deviations
+            # (0, 4): (Action.SPLIT, 0),        # Split 10s vs 4 if count >= 6 (handled below)
+            # (0, 5): (Action.SPLIT, 5),        # Split 10s vs 5 if count >= 5
+            # (0, 6): (Action.SPLIT, 4),        # Split 10s vs 6 if count >= 4
+        }
+
+        self.omega_ii_deviations = {
+            # Insurance deviations
+            (0, 11): (Action.INSURANCE, 3),
+            # Stand deviations
+            (16, 10): (Action.STAND, 0),
+            (15, 10): (Action.STAND, 5),
+            (15, 9): (Action.STAND, 3),
+
+            # Hit deviations (technically, these are stand overrides too)
+            (12, 2): (Action.STAND, 3),
+            (12, 3): (Action.STAND, 2),
+            (12, 4): (Action.STAND, 0),
+            (12, 5): (Action.STAND, -2),
+            (12, 6): (Action.STAND, -1),
+
+            # Double deviations
+            (11, 11): (Action.DOUBLE, 2),
+            (10, 10): (Action.DOUBLE, 5),
+            (10, 11): (Action.DOUBLE, 4),
+            (9, 2): (Action.DOUBLE, 1),
+            (9, 7): (Action.DOUBLE, 3),
+
+            #TODO: Can be added once integration is complete
+            # Split deviations (pair of 10s)
+            # (0, 4): (Action.SPLIT, 6),
+            # (0, 5): (Action.SPLIT, 5),
+            # (0, 6): (Action.SPLIT, 4),
+        }
+    
     # Resetting game state to start
     def start(self, counting_technique, betting_strategy, player_pos, num_shoes, unit_bet):
         self.counting_technique = counting_technique
@@ -101,12 +159,10 @@ class GameState:
         self.doubled_hands = set()
 
         #TODO: Currently is random information but needs to be updated to not have this be called
-        dummy_data = [{"id": "dealer", "hands": [{"3": 1, "A": 3}]},
-                      {"id": "1", "hands": [{"A": 1, "2": 2}]},
-                      {"id": "2", "hands": [{"10": 2}, {"A": 1, "7": 1}]},
-                      {"id": "3", "hands": [{"A": 1, "2": 2}]},
-                      {"id": "4", "hands": [{"A": 3, "2": 2}]},
-                      {"id": "5", "hands": [{"10": 1, "3": 1, "4": 1}]}]
+        dummy_data = [{"id": "dealer", "hands": [{"10": 1}]},
+                      {"id": "1", "hands": [{"2": 2}]},
+                      {"id": "2", "hands": [{"10": 1, "5": 1}]},
+                      {"id": "3", "hands": [{"A": 1, "2": 2}]},]
         
         self.update_hands(dummy_data)
         
@@ -117,10 +173,10 @@ class GameState:
         
         net_bet = self.curr_bet
         if id in self.doubled_hands:
+            self.doubled_hands.remove(id)
             net_bet *= 2
 
         del self.curr_hands[id]
-        self.doubled_hands.remove(id)
         
         match outcome:
             case Outcome.WIN:
@@ -163,14 +219,14 @@ class GameState:
             (num_cards, count_change) = self.process_hand(player_data["hands"])
             temp_seen += num_cards
             temp_change += count_change
-
+            
         self.curr_round_cards_seen = temp_seen
         self.curr_round_count_change = temp_change
 
     def process_hand(self, hands):
         cards_seen = 0
         count_change = 0
-
+        
         for hand in hands:
             for key, val in hand.items():
                 cards_seen += val
@@ -191,8 +247,20 @@ class GameState:
                             count_change -= val * 2
                     case _:
                         continue
-
         return (cards_seen, count_change)
+    
+    def process_data(self, data):
+        hands = []
+        for data_comp in data["player_hands"]:
+            player_hand = []
+            for hand in data_comp["hand"]:
+                freq = {}
+                for val in hand:
+                    freq[val] = freq.get(val, 0) + 1
+                player_hand.append(freq)
+            hands.append({"id": data_comp["id"], "hands": player_hand})
+        
+        return hands
     
     # Getting game state
     def get_betting_mode(self):
@@ -212,8 +280,7 @@ class GameState:
         return self.curr_bet * (len(self.curr_hands) + len(self.doubled_hands))
 
     def get_optimal_bet(self):
-        decks_used = math.floor(self.cards_seen/52)
-        true_count = math.floor(self.curr_count/(self.num_shoes-decks_used))
+        true_count = self.get_true_count()
 
         match self.betting_strategy:
             case "martingale":
@@ -234,6 +301,13 @@ class GameState:
             case _:
                 scale = max(1, true_count)
                 return scale * self.unit_bet
+
+    def get_true_count(self):
+
+        total_count = self.curr_count + self.curr_round_count_change
+        decks_used = math.floor(self.cards_seen/52)
+        true_count = math.floor(total_count/(self.num_shoes-decks_used))
+        return true_count
 
     def get_curr_hand(self, hand):
         num_aces = 0
@@ -284,21 +358,59 @@ class GameState:
             else:
                 dealer = int(key)
 
-        player_play = []
+        player_play = [] # Has correct play, basic strategy play, whether it is a deviation, and why
+        curr_count = self.get_true_count()
+
         for i in range(len(self.curr_hands)):
             temp = self.curr_hands[i].copy()
             (hard, soft) = self.get_curr_hand(temp)
-
-
-            #TODO: Needs to case base on the counting technique
             if hard >= 17:
-                player_play.append(Action.STAND)
+                basic_play = Action.STAND
             elif soft is not None:
-                player_play.append(self.soft_total[soft][dealer])
+                basic_play = self.soft_total[soft][dealer]
+            elif hard <= 7:
+                basic_play = Action.HIT
             else:
-                player_play.append(self.hard_total[soft][dealer])
+                basic_play = self.hard_total[hard][dealer]
 
-        return (player_play, dealer_card)
+            match self.counting_technique:
+                case "basic-strategy":
+                    deviations = {}
+                case "hi-lo":
+                    deviations = self.hi_lo_deviations
+                case _:
+                    deviations = self.omega_ii_deviations
+            
+            if(0, dealer) in deviations:
+                (new_action, min_count) = deviations[(0, dealer)]
+                if curr_count >= min_count:
+                    player_play.append((new_action, basic_play, True))
+                    continue
+            if(hard, dealer) in deviations:
+                (new_action, min_count) = deviations[(hard, dealer)]
+                if curr_count >= min_count:
+                    player_play.append((new_action, basic_play, True))
+                    continue
+            if(soft, dealer) in deviations:
+                (new_action, min_count) = deviations[(soft, dealer)]
+                if curr_count >= min_count:
+                    player_play.append((new_action, basic_play, True))
+                    continue
+            player_play.append((basic_play, basic_play, False))
+
+        return (player_play, dealer_card, curr_count)
+    
+    def get_processed_play(self):
+        player_play, dealer_card, count = self.get_optimal_play()
+
+        string_plays = []
+        for (new_play, old_play, is_dev) in player_play:
+            if not is_dev:
+                string_plays.append(f"{new_play.value}")
+            else:
+                string_plays.append(f"{old_play.value} by Basic Strategy, but since the count is {count}, you should deviate to play {new_play.value}")
+
+        return (string_plays, dealer_card, count)
 
 
 

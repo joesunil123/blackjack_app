@@ -5,22 +5,29 @@
         <div class="p-3 border rounded bg-light">
           <h5>Hand {{ hand.id }}:</h5>
           <p>Showing {{ hand.hand }}</p>
-          <!-- buttons or info here -->
+
+          <!-- Buttons for this hand -->
+          <form action="{{ url_for('handle_hand_result') }}" method="POST" class="d-flex justify-content-between gap-2 mt-2">
+            <input type="hidden" name="hand_id" value="{{ hand.id }}">
+  
+            <button name="result" value="win" class="btn btn-success w-100">Win</button>
+            <button name="result" value="double" class="btn btn-info w-100">Double</button>
+            <button name="result" value="push" class="btn btn-secondary w-100">Push</button>
+            <button name="result" value="lose" class="btn btn-danger w-100">Lose</button>
+            <button name="result" value="bj" class="btn btn-warning w-100">BJ</button>
+          </form>
         </div>
         {% endfor %}
-
         <!-- Toggle Info Button -->
         <div class="text-end mt-3 mb-2">
-          <button id="toggleInfoBtn" class="btn btn-outline-secondary">+ Count/Optimal Play</button>
-        </div>
-
-        <!-- Info Box -->
-        <div id="infoBox" class="p-3 border rounded bg-light" style="display: none;">
-          <h5>Count/Optimal Play</h5>
-          <p>Count: {{ count }}</p>
-          {% for play in optimal_play %}
-          <p>Hand {{ play.id }}: Dealer shows {{ dealer }}, the optimal action is to {{ play.action }}</p>
-          {% endfor %}
+          <button
+            id="toggleInfoBtn"
+            class="btn btn-outline-secondary"
+            data-toggle-target="infoBox"
+            data-toggle-text-open="−"
+            data-toggle-text-closed="+ Count/Optimal Play">
+            + Count/Optimal Play
+          </button>
         </div>
       </div>
     </template>

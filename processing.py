@@ -22,6 +22,9 @@ class Outcome(Enum):
 
 class GameState:
     def __init__(self):
+        # Debug parameters
+        self.dummy = 0
+
         # Input parameters
         self.counting_technique = ""
         self.betting_strategy = ""
@@ -130,6 +133,9 @@ class GameState:
     
     # Resetting game state to start
     def start(self, counting_technique, betting_strategy, player_pos, num_shoes, unit_bet):
+        # Debugging
+        self.dummy = 0
+
         self.counting_technique = counting_technique
         self.betting_strategy = betting_strategy
         self.player_pos = player_pos
@@ -159,10 +165,17 @@ class GameState:
         self.doubled_hands = set()
 
         #TODO: Currently is random information but needs to be updated to not have this be called
-        dummy_data = [{"id": "dealer", "hands": [{"10": 1}]},
-                      {"id": "1", "hands": [{"2": 2}]},
-                      {"id": "2", "hands": [{"10": 1, "5": 1}]},
-                      {"id": "3", "hands": [{"A": 1, "2": 2}]},]
+        if self.dummy % 2 == 0:
+            dummy_data = [{"id": "dealer", "hands": [{"10": 1}]},
+                        {"id": "1", "hands": [{"2": 2}]},
+                        {"id": "2", "hands": [{"10": 1, "5": 1}]},
+                        {"id": "3", "hands": [{"A": 1, "2": 2}]}]
+        else:
+            dummy_data = [{"id": "dealer", "hands": [{"8": 1}]},
+                        {"id": "1", "hands": [{"7": 2, "3": 1}]},
+                        {"id": "2", "hands": [{"10": 1, "5": 1}, {"8": 1, "9": 1}]},
+                        {"id": "3", "hands": [{"A": 1, "2": 2}]}]
+        self.dummy += 1
         
         self.update_hands(dummy_data)
         

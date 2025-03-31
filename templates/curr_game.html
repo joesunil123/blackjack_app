@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  {{ turbo() }}
   <meta charset="UTF-8">
   <title>Current Round</title>
   <style>
@@ -53,6 +54,7 @@
       console.log("Received updated card info", data);
     });
   </script>
+  <script type="module" src="{{ url_for('static', filename='js/application.js') }}"></script>
 </head>
 <body>
 
@@ -73,7 +75,11 @@
         <div class="mb-4 p-3 border rounded shadow-sm bg-white">
           <h5 class="mb-3">Profits Over Last 10 Rounds</h5>
           <div style="height: 300px;">
-            <canvas id="winningsChart"></canvas>
+            <canvas
+              id="winningsChart"
+              data-labels='{{ rounds | tojson | safe }}'
+              data-points='{{ winnings_history | tojson | safe }}'>
+            </canvas>
           </div>
         </div>
 
@@ -104,74 +110,30 @@
           {% endfor %}
           <!-- Toggle Info Button -->
           <div class="text-end mt-3 mb-2">
-            <button id="toggleInfoBtn" class="btn btn-outline-secondary">+ Count/Optimal Play</button>
-          </div>
-
-          <!-- Info Box -->
-          <div id="infoBox" class="p-3 border rounded bg-light" style="display: none;">
-            <h5>Count/Optimal Play</h5>
-            <p>Count: {{ count }}</p>
-            {% for play in optimal_play %}
-            <p>Hand {{ play.id }}: Dealer shows {{ dealer }}, the optimal action is to {{ play.action }}</p>
-            {% endfor %}
+            <button
+              id="toggleInfoBtn"
+              class="btn btn-outline-secondary"
+              data-toggle-target="infoBox"
+              data-toggle-text-open="−"
+              data-toggle-text-closed="+ Count/Optimal Play">
+              + Count/Optimal Play
+            </button>
           </div>
         </div>
+         <!-- Info Box -->
+         <div
+         id="infoBox"
+         class="p-3 border rounded bg-light"
+         style="display: none;">
+         <h5>Count/Optimal Play</h5>
+         <p>Count: {{ count }}</p>
+         {% for play in optimal_play %}
+           <p>Hand {{ play.id }}: Dealer shows {{ dealer }}, the optimal action is to {{ play.action }}</p>
+         {% endfor %}
+      </div>
+          
       </div>
     </div>
   </div>
-
-  <!-- Scripts -->
-  <script>
-    document.addEventListener("DOMContentLoaded", function () {
-      // Profit color
-      const winningsDisplay = document.getElementById("winnings-display");
-      const winningsValue = parseFloat("{{ current_winnings }}");
-      if (winningsValue > 0) {
-        winningsDisplay.style.color = "green";
-      } else if (winningsValue < 0) {
-        winningsDisplay.style.color = "red";
-      } else {
-        winningsDisplay.style.color = "black";
-      }
-
-      // Toggle info box
-      const toggleBtn = document.getElementById("toggleInfoBtn");
-      const infoBox = document.getElementById("infoBox");
-      toggleBtn.addEventListener("click", function () {
-        const isVisible = infoBox.style.display === "block";
-        infoBox.style.display = isVisible ? "none" : "block";
-        toggleBtn.textContent = isVisible ? "+ Count/Optimal Play" : "−";
-      });
-
-      // Chart.js
-      const labels = {{ rounds|tojson | safe }};
-      const dataPoints = {{ winnings_history|tojson | safe }};
-      const lastValue = dataPoints[dataPoints.length - 1] || 0;
-      const chartColor = lastValue > 0 ? 'green' : lastValue < 0 ? 'red' : 'black';
-
-      const ctx = document.getElementById('winningsChart').getContext('2d');
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            data: dataPoints,
-            borderColor: chartColor,
-            backgroundColor: chartColor,
-            pointBackgroundColor: chartColor,
-            pointBorderColor: chartColor,
-            fill: false,
-            tension: 0.3
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: { legend: { display: false }},
-          scales: { y: { beginAtZero: true }}
-        }
-      });
-    });
-  </script>
 </body>
 </html>

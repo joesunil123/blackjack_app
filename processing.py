@@ -178,18 +178,17 @@ class GameState:
 
         del self.curr_hands[id]
         
-        match outcome:
-            case Outcome.WIN:
-                self.curr_round_profit += net_bet
-            case Outcome.PUSH:
-                self.curr_round_profit += 0
-            case Outcome.LOSE:
-                self.curr_round_profit -= net_bet
-            case Outcome.BJ:
-                self.curr_round_profit += net_bet * 1.5
-            case _:
-                # Dummy case
-                self.curr_round_profit += net_bet
+        if outcome == Outcome.WIN:
+            self.curr_round_profit += net_bet
+        elif outcome == Outcome.PUSH:
+            self.curr_round_profit += 0
+        elif outcome == Outcome.LOSE:
+            self.curr_round_profit -= net_bet
+        elif outcome == Outcome.BJ:
+            self.curr_round_profit += net_bet * 1.5
+        else:
+            # Dummy case
+            self.curr_round_profit += net_bet
 
         if not self.curr_hands:
             prev_profit = 0 if not self.profits else self.profits[-1]
@@ -232,23 +231,22 @@ class GameState:
         for hand in hands:
             for key, val in hand.items():
                 cards_seen += val
-                match self.counting_technique:
-                    case "hi-lo":
-                        if key in {"2", "3", "4", "5", "6"}:
-                            count_change += val
-                        elif key in {"10", "J", "Q", "K", "A"}:
-                            count_change -= val
-                    case "omega-ii":
-                        if key in {"2", "3", "7"}:
-                            count_change += val
-                        elif key in {"4", "5", "6"}:
-                            count_change += val * 2
-                        elif key == "9":
-                            count_change -= val
-                        elif key in {"10", "J", "Q", "K"}:
-                            count_change -= val * 2
-                    case _:
-                        continue
+                if self.counting_technique == "hi-lo":
+                    if key in {"2", "3", "4", "5", "6"}:
+                        count_change += val
+                    elif key in {"10", "J", "Q", "K", "A"}:
+                        count_change -= val
+                if self.counting_technique == "omega-ii":
+                    if key in {"2", "3", "7"}:
+                        count_change += val
+                    elif key in {"4", "5", "6"}:
+                        count_change += val * 2
+                    elif key == "9":
+                        count_change -= val
+                    elif key in {"10", "J", "Q", "K"}:
+                        count_change -= val * 2
+                else:
+                    continue
         return (cards_seen, count_change)
     
     def process_data(self, data):
@@ -288,25 +286,24 @@ class GameState:
     def get_optimal_bet(self):
         true_count = self.get_true_count()
 
-        match self.betting_strategy:
-            case "martingale":
-                if self.curr_round_profit < 0:
-                    return -self.curr_round_profit * 2
-                elif self.curr_round_profit == 0:
-                    return self.curr_bet
-                else:
-                    return self.unit_bet
+        if self.betting_strategy == "martingale":
+            if self.curr_round_profit < 0:
+                return -self.curr_round_profit * 2
+            elif self.curr_round_profit == 0:
+                return self.curr_bet
+            else:
+                return self.unit_bet
                 
-            case "reverse-martingale":
-                if self.curr_round_profit < 0:
-                    return max(self.curr_bet // 2, self.unit_bet//2)
-                elif self.curr_round_profit == 0:
-                    return self.curr_bet
-                else:
-                    return self.curr_bet * 2
-            case _:
-                scale = max(1, true_count)
-                return scale * self.unit_bet
+        if self.betting_strategy == "reverse-martingale":
+            if self.curr_round_profit < 0:
+                return max(self.curr_bet // 2, self.unit_bet//2)
+            elif self.curr_round_profit == 0:
+                return self.curr_bet
+            else:
+                return self.curr_bet * 2
+        else:
+            scale = max(1, true_count)
+            return scale * self.unit_bet
 
     def get_true_count(self):
 
@@ -377,13 +374,12 @@ class GameState:
             else:
                 basic_play = self.hard_total[hard][dealer]
 
-            match self.counting_technique:
-                case "basic-strategy":
-                    deviations = {}
-                case "hi-lo":
-                    deviations = self.hi_lo_deviations
-                case _:
-                    deviations = self.omega_ii_deviations
+            if self.counting_technique == "basic-strategy":
+                deviations = {}
+            elif self.counting_technique == "hi-lo":
+                deviations = self.hi_lo_deviations
+            else:
+                deviations = self.omega_ii_deviations
             
             if(0, dealer) in deviations:
                 (new_action, min_count) = deviations[(0, dealer)]

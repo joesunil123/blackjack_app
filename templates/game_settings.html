@@ -59,7 +59,7 @@
 
   <div class="mb-3">
     <label for="unit-bet" class="form-label">Unit Bet:</label>
-    <input type="number" class="form-control" id="unit-bet" name="unit-bet" placeholder="Enter unit bet" required>
+    <input type="number" class="form-control" id="unit-bet" name="unit-bet" placeholder="Enter unit bet" required min="1">
     
   </div>
 
@@ -70,54 +70,6 @@
 {% endblock %}
 
 {% block head %}
-<style>
-  form {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 20px;
-  }
-  .field {
-    display: flex;
-    flex-direction: column;
-  }
-  .label-row {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .info-icon {
-    font-size: 1rem;
-    color: #007bff;
-    text-decoration: none;
-  }
-  .info-icon:hover {
-    text-decoration: underline;
-  }
-  select {
-    font-size: 1rem;
-    padding: 5px 10px;
-    width: 200px;
-  }
-  .submit-container {
-    width: 100%;
-    display: flex;
-    justify-content: center;
-    padding: 20px;
-  }
-  .submit-button {
-    padding: 10px 20px;
-    font-size: 1rem;
-    background-color: #28a745;
-    color: white;
-    border: none;
-    border-radius: 5px;
-    cursor: pointer;
-  }
-  .submit-button:hover {
-    background-color: #218838;
-  }
-</style>
 <script>
   function toggleCountBasedOption() {
     const counting = document.getElementById("counting-technique");

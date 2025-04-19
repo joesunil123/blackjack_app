@@ -5,6 +5,24 @@
   <meta charset="UTF-8">
   <title>Pre-Round</title>
   <style>
+    /* Hide the infoBox unless checkbox is checked */
+    #infoToggle:not(:checked) + label + .toggle-box {
+      display: none;
+    }
+
+    /* Label shows "+" when unchecked, "-" when checked */
+    .toggle-label::before {
+      content: "+ Optimal Bet";
+    }
+
+    #infoToggle:checked + .toggle-label::before {
+      content: "− Optimal Bet";
+    }
+
+    .toggle-box {
+      margin-top: 10px; /* Adjust as needed */
+    }
+
     body {
       margin: 0;
       font-family: Arial, sans-serif;
@@ -96,20 +114,20 @@
                 id="bet-amount" 
                 name="bet-amount" 
                 placeholder="Enter amount..." 
-                required
+                required min="1"
               >
               <button class="btn btn-success" type="submit">Enter</button>
             </div>
           </form>
         </div>
-        <!-- Toggle Info Button -->
-        <div class="text-end mt-3 mb-2">
-          <button id="toggleInfoBtn" class="btn btn-outline-secondary">+ Optimal Bet</button>
-        </div>
 
-        <!-- Info Box -->
-        <div id="infoBox" class="p-3 border rounded bg-light" style="display: none;">
-          <h5>Optimal Bet</h5>
+        <!-- Toggle Info Button -->
+        <input type="checkbox" id="infoToggle" style="display: none;" />
+        <label for="infoToggle" class="btn btn-outline-secondary mb-3 mt-3 toggle-label"></label>
+        </label>
+
+        <!-- Info Box (controlled by checkbox state) -->
+        <div id="infoBox" class="p-3 border rounded bg-light toggle-box">
           <p>At this stage, using the {{ betting_strategy}} system, you should bet {{ optimal_bet}}</p>
         </div>
 

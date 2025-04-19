@@ -146,8 +146,9 @@ def handle_card_data(data):
     for i in range(len(optimal_actions)):
         optimal_play.append({"id": i+1, "action": optimal_actions[i]})
 
-    html = render_template('partials/_player_hands.html', player_hands=player_hands, optimal_play=optimal_play, dealer=dealer_hand, count=count)
-    turbo.push(html)
+    html = render_template('partials/_player_toggle_info.html', player_hands=player_hands, optimal_play=optimal_play, dealer=dealer_hand, count=count)
+    print(html)
+    turbo.push(turbo.replace(html, target='player-toggle-info'))
 
 
 if __name__ == "__main__":

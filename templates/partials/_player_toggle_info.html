@@ -1,0 +1,31 @@
+<!-- Player Hands -->
+<div id="player-section">
+  {% for hand in player_hands %}
+    <div class="p-3 border rounded bg-light mb-3">
+      <h5>Hand: {{ hand.id }}</h5>
+      <p>Showing {{ hand.hand }}</p>
+      <form action="{{ url_for('handle_hand_result') }}" method="POST" class="d-flex justify-content-between gap-2 mt-2">
+        <input type="hidden" name="hand_id" value="{{ hand.id }}">
+        <button name="result" value="win" class="btn btn-success w-100">Win</button>
+        <button name="result" value="double" class="btn btn-info w-100">Double</button>
+        <button name="result" value="push" class="btn btn-secondary w-100">Push</button>
+        <button name="result" value="lose" class="btn btn-danger w-100">Lose</button>
+        <button name="result" value="bj" class="btn btn-warning w-100">BJ</button>
+      </form>
+    </div>
+  {% endfor %}
+</div>
+
+<!-- Toggle using hidden checkbox and dynamic label -->
+<div class="mb-3">
+  <input type="checkbox" id="infoToggle" style="display: none;">
+  <label for="infoToggle" class="btn btn-outline-secondary toggle-label"></label>
+
+  <!-- Info Box (controlled by checkbox) -->
+  <div id="infoBox" class="p-3 border rounded bg-light toggle-box">
+    <p>Count: {{ count }}</p>
+    {% for play in optimal_play %}
+      <p>Hand {{ play.id }}: Dealer shows {{ dealer }}, the optimal action is to {{ play.action }}</p>
+    {% endfor %}
+  </div>
+</div>

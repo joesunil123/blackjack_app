@@ -1,4 +1,4 @@
-import { updateWinningsColor, setupInfoToggle } from "./ui.js";
+import { updateWinningsColor } from "./ui.js";
 import { renderWinningsChart } from "./chart.js";
 
 document.addEventListener("turbo:load", () => {
@@ -7,8 +7,7 @@ document.addEventListener("turbo:load", () => {
   const winningsValue = winningsDisplay
     ? parseFloat(winningsDisplay.dataset.winnings || "0")
     : 0;
-
+    console.log("Doing load");
   updateWinningsColor(winningsValue);
-  setupInfoToggle();
   renderWinningsChart();
-});
+})

@@ -13,12 +13,20 @@
   <script type="module" src="{{ url_for('static', filename='js/application.js') }}"></script>
 
   <style>
-    /* Hide the infoBox unless checkbox is checked */
+    /* Generic toggle hide/show */
+    .toggle-box {
+      margin-top: 10px;
+    }
+
     #infoToggle:not(:checked) + label + .toggle-box {
       display: none;
     }
 
-    /* Label shows "+" when unchecked, "-" when checked */
+    #optimalBetToggle:not(:checked) + label + .toggle-box {
+      display: none;
+    }
+
+    /* Label content for Count/Optimal Play */
     .toggle-label::before {
       content: "+ Count/Optimal Play";
     }
@@ -27,8 +35,13 @@
       content: "− Count/Optimal Play";
     }
 
-    .toggle-box {
-      margin-top: 10px; /* Adjust as needed */
+    /* Label content for Optimal Bet */
+    .toggle-label-optimal::before {
+      content: "+ Optimal Bet";
+    }
+
+    #optimalBetToggle:checked + .toggle-label-optimal::before {
+      content: "− Optimal Bet";
     }
 
     body {

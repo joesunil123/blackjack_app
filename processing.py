@@ -12,6 +12,7 @@ class Action(Enum):
     SPLIT = "Split"
     DOUBLE = "Double"
     INSURANCE = "Insutrance"
+    WAIT = "Waiting for dealer card"
 
 class Outcome(Enum):
     WIN = 1
@@ -22,14 +23,11 @@ class Outcome(Enum):
 
 class GameState:
     def __init__(self):
-        # Debug parameters
-        self.dummy = 0
-
         # Input parameters
         self.counting_technique = ""
         self.betting_strategy = ""
         self.player_pos = 0
-        self.num_shoes = 0
+        self.num_shoes = 6
         self.unit_bet = 0
 
         # Display parameters
@@ -39,7 +37,7 @@ class GameState:
         # Intermediate data
         self.curr_count = 0
         self.cards_seen = 0
-        self.prev_result = Outcome.WIN
+        self.prev_result = Outcome.PUSH
         self.curr_round_profit = 0
         self.curr_round_cards_seen = 0
         self.curr_round_count_change = 0
@@ -134,7 +132,6 @@ class GameState:
     # Resetting game state to start
     def start(self, counting_technique, betting_strategy, player_pos, num_shoes, unit_bet):
         # Debugging
-        self.dummy = 0
 
         self.counting_technique = counting_technique
         self.betting_strategy = betting_strategy
@@ -143,9 +140,10 @@ class GameState:
         self.unit_bet = unit_bet
         
         self.profits = deque()
-        self.curr_winnings = 0
         self.curr_bet = self.unit_bet
+
         self.curr_count = 0
+        self.curr_winnings = 0
         self.cards_seen = 0
         self.prev_result = Outcome.PUSH
         self.curr_round_profit = 0
@@ -155,6 +153,8 @@ class GameState:
 
         self.curr_hands = []
         self.dealer_hand = {}
+
+        self.round_started = False
     
     # Updating game state
     def place_bet(self, new_bet):
@@ -163,22 +163,8 @@ class GameState:
         self.curr_round_cards_seen = 0
         self.curr_round_count_change = 0
         self.doubled_hands = set()
-
-        #TODO: Currently is random information but needs to be updated to not have this be called
-        if self.dummy % 2 == 0:
-            dummy_data = [{"id": "dealer", "hands": [{"10": 1}]},
-                        {"id": "1", "hands": [{"2": 2}]},
-                        {"id": "2", "hands": [{"10": 1, "5": 1}]},
-                        {"id": "3", "hands": [{"A": 1, "2": 2}]}]
-        else:
-            dummy_data = [{"id": "dealer", "hands": [{"8": 1}]},
-                        {"id": "1", "hands": [{"7": 2, "3": 1}]},
-                        {"id": "2", "hands": [{"10": 1, "5": 1}, {"8": 1, "9": 1}]},
-                        {"id": "3", "hands": [{"A": 1, "2": 2}]}]
-        self.dummy += 1
-        
-        self.update_hands(dummy_data)
-        
+        self.round_started = True
+                
     def hand_outcome(self, outcome: Outcome, id):
         if outcome == Outcome.DOUBLE:
             self.doubled_hands.add(id)
@@ -213,6 +199,8 @@ class GameState:
             if self.cards_seen >= self.num_shoes * 52:
                 self.cards_seen = 0
                 self.curr_count = 0
+            
+            self.round_started = False
 
         if len(self.profits) > MAX_DISPLAY_WINNINGS:
             self.profits.popleft()
@@ -289,6 +277,10 @@ class GameState:
             return [0]
         return self.profits.copy()
     
+    def is_full_hand(self, i):
+        (_, _, num_cards) = self.get_curr_hand(self.curr_hands[i].copy())
+        return num_cards >= 2
+    
     def get_current_bet(self):
         return self.curr_bet * (len(self.curr_hands) + len(self.doubled_hands))
 
@@ -325,7 +317,9 @@ class GameState:
     def get_curr_hand(self, hand):
         num_aces = 0
         total_rest = 0
+        num_cards = 0
         for key, val in hand.items():
+            num_cards += val
             if key == "A":
                 num_aces = val
             elif key == "J" or key == "Q" or key == "K":
@@ -334,26 +328,20 @@ class GameState:
                 total_rest += val * int(key)
 
         if num_aces == 0:
-            return (total_rest, None)
+            return (total_rest, None, num_cards)
         
         soft_total = total_rest + num_aces
         hard_total = soft_total + 10
 
         if hard_total <= 21:
-            return (hard_total, soft_total)
-        return (soft_total, None)
-    
-    def get_dealer_hands(self):
-        (hard, soft) = self.get_curr_hand(self.dealer_hand)
-        if soft is None:
-            return f"Hard: {hard}"
-        return f"Hard: {hard}, Soft: {soft}"
+            return (hard_total, soft_total, num_cards)
+        return (soft_total, None, num_cards)
     
     def get_player_hands(self):
         hands = []
         for i in range(len(self.curr_hands)):
             temp = self.curr_hands[i]
-            (hard, soft) = self.get_curr_hand(temp)
+            (hard, soft, _) = self.get_curr_hand(temp)
             if soft is None:
                 hands.append({"id": i+1, "hand": f"Hard: {hard}"})
             else:
@@ -373,11 +361,13 @@ class GameState:
 
         player_play = [] # Has correct play, basic strategy play, whether it is a deviation, and why
         curr_count = self.get_true_count()
-
+        
         for i in range(len(self.curr_hands)):
             temp = self.curr_hands[i].copy()
-            (hard, soft) = self.get_curr_hand(temp)
-            if hard >= 17:
+            (hard, soft, num_cards) = self.get_curr_hand(temp)
+            if dealer < 2 or num_cards < 2:
+                return ([(Action.WAIT, Action.WAIT, False)], "", curr_count)
+            elif hard >= 17:
                 basic_play = Action.STAND
             elif soft is not None:
                 basic_play = self.soft_total[soft][dealer]
@@ -418,12 +408,14 @@ class GameState:
 
         string_plays = []
         for (new_play, old_play, is_dev) in player_play:
-            if not is_dev:
-                string_plays.append(f"{new_play.value}")
+            if new_play == Action.WAIT:
+                string_plays.append(f"Wait for more cards")
+            elif not is_dev:
+                string_plays.append(f"Dealer shows {dealer_card}, Basic Strategy suggests {new_play.value}")
             else:
-                string_plays.append(f"{old_play.value} by Basic Strategy, but since the count is {count}, you should deviate to play {new_play.value}")
+                string_plays.append(f"Dealer shows {dealer_card}, Basic Strategy suggests {old_play.value}, but since the count is {count}, you should deviate to play {new_play.value}")
 
-        return (string_plays, dealer_card, count)
+        return (string_plays, count)
 
 
 

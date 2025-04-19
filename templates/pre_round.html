@@ -6,21 +6,35 @@
   <title>Pre-Round</title>
   <style>
     /* Hide the infoBox unless checkbox is checked */
+    /* Generic toggle hide/show */
+    .toggle-box {
+      margin-top: 10px;
+    }
+
     #infoToggle:not(:checked) + label + .toggle-box {
       display: none;
     }
 
-    /* Label shows "+" when unchecked, "-" when checked */
+    #optimalBetToggle:not(:checked) + label + .toggle-box {
+      display: none;
+    }
+
+    /* Label content for Count/Optimal Play */
     .toggle-label::before {
-      content: "+ Optimal Bet";
+      content: "+ Count/Optimal Play";
     }
 
     #infoToggle:checked + .toggle-label::before {
-      content: "− Optimal Bet";
+      content: "− Count/Optimal Play";
     }
 
-    .toggle-box {
-      margin-top: 10px; /* Adjust as needed */
+    /* Label content for Optimal Bet */
+    .toggle-label-optimal::before {
+      content: "+ Optimal Bet";
+    }
+
+    #optimalBetToggle:checked + .toggle-label-optimal::before {
+      content: "− Optimal Bet";
     }
 
     body {
@@ -121,14 +135,14 @@
           </form>
         </div>
 
-        <!-- Toggle Info Button -->
-        <input type="checkbox" id="infoToggle" style="display: none;" />
-        <label for="infoToggle" class="btn btn-outline-secondary mb-3 mt-3 toggle-label"></label>
-        </label>
+        <!-- Optimal Bet Toggle -->
+        <div class="mb-3 mt-4">
+          <input type="checkbox" id="optimalBetToggle" style="display: none;">
+          <label for="optimalBetToggle" class="btn btn-outline-secondary toggle-label-optimal"></label>
 
-        <!-- Info Box (controlled by checkbox state) -->
-        <div id="infoBox" class="p-3 border rounded bg-light toggle-box">
-          <p>At this stage, using the {{ betting_strategy}} system, you should bet {{ optimal_bet}}</p>
+          <div id="optimalBetBox" class="p-3 border rounded bg-light toggle-box">
+            <p>Based on the {{ betting_strategy }} strategy, your optimal bet is {{ optimal_bet }}.</p>
+          </div>
         </div>
 
       </div>

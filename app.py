@@ -1,30 +1,76 @@
-from flask import Flask, render_template, request, url_for, flash, redirect, jsonify
-from datetime import datetime
-from turbo_flask import Turbo
 import sqlite3
 import os
 import processing as proc
+
+from flask import Flask, render_template, request, url_for, flash, redirect, jsonify, session
+from datetime import datetime
+from turbo_flask import Turbo
 from flask_socketio import SocketIO, emit
-from eventlet import wsgi
+from flask_session import Session
+
 import eventlet
+from eventlet import wsgi
+
+from functools import wraps
+
 
 eventlet.monkey_patch()
 app = Flask(__name__)
 turbo = Turbo(app)
+
+# Security
 app.config['SECRET_KEY'] = 'your secret key' # should be a long random string: generate one
-socketio = SocketIO(app, async_mode='eventlet')
+DEVICE_PASSWORD = "18500-lohiththegoat"
+
+# Login wrapper
+def login_required(view_func):
+    @wraps(view_func)
+    def wrapped_view(*args, **kwargs):
+        if not session.get('authenticated'):
+            return redirect(url_for('login'))
+        return view_func(*args, **kwargs)
+    return wrapped_view
+
+# Game Start wrapper
+def start_required(view_func):
+    @wraps(view_func)
+    def wrapped_view(*args, **kwargs):
+        if not session.get('game_start'):
+            return redirect(url_for('game_settings'))
+        return view_func(*args, **kwargs)
+    return wrapped_view
+
+# Round Start required
+def round_required(view_func):
+    @wraps(view_func)
+    def wrapped_view(*args, **kwargs):
+        if not session.get('game_run'):
+            return redirect(url_for('pre_round'))
+        return view_func(*args, **kwargs)
+    return wrapped_view
+
+socketio = SocketIO(app, async_mode='eventlet', manage_session=False)
 game_state = proc.GameState()
 
 # Pre-game pages
 # Application entry page
 @app.route('/', methods=('GET', 'POST'))
-def index():
-    return render_template('index.html')
+def login():
+    session.clear()
+    if request.method == 'POST':
+        if request.form['password'] == DEVICE_PASSWORD:
+            session['authenticated'] = True
 
-# Intermediate page to clear the database
+            return redirect(url_for("game_settings"))
+        else:
+            flash("Incorrect passoword")
+    return render_template('login.html')
+
+# Intermediate page to clear the game state
 @app.route('/clear_and_home')
 def clear_and_home():
-    return redirect(url_for("index"))
+    session.clear()
+    return redirect(url_for("login"))
 
 # Page where game settings are inputted
 @app.route('/game_settings', methods=('GET', 'POST'))
@@ -35,9 +81,8 @@ def game_settings():
         player_pos = request.form.get('player-position', type=int)
         num_shoes = request.form.get('num-shoes', type=int)
         unit_bet = request.form.get('unit-bet', type=int)
-
-        #TODO: Add Num shoes field to this page
         game_state.start(counting_technique=counting_technique, betting_strategy=betting_strategy, player_pos=player_pos, num_shoes=num_shoes, unit_bet=unit_bet)
+        session['game_start'] = True
 
         return redirect(url_for('pre_round'))
     return render_template('game_settings.html')
@@ -92,7 +137,7 @@ def curr_game():
     rounds = [f"{i+1}" for i in range(len(winnings_history))]
     curr_bet = game_state.get_current_bet()
     player_hands = game_state.get_player_hands()
-    optimal_actions, dealer_hand, count = game_state.get_processed_play()
+    optimal_actions, count = game_state.get_processed_play()
 
     optimal_play = []
     for i in range(len(optimal_actions)):
@@ -104,7 +149,6 @@ def curr_game():
         winnings_history=winnings_history,
         rounds=rounds,
         curr_bet=curr_bet,
-        dealer=dealer_hand,
         player_hands=player_hands,
         optimal_play=optimal_play,
         count=count
@@ -114,6 +158,11 @@ def curr_game():
 def handle_hand_result():
     hand_id = request.form.get("hand_id", type=int)
     outcome = request.form.get('result')
+
+    if not game_state.is_full_hand(hand_id-1):
+        flash("Incorrect password")
+        return redirect(url_for("curr_game"))
+
     if outcome == 'win':
         outcome = proc.Outcome.WIN
     elif outcome == 'push':
@@ -126,6 +175,7 @@ def handle_hand_result():
         outcome = proc.Outcome.BJ
 
     if game_state.hand_outcome(outcome, hand_id-1):
+        session['game_run'] = False
         return redirect(url_for("pre_round"))
 
     return redirect(url_for("curr_game"))
@@ -134,20 +184,21 @@ def handle_hand_result():
 
 @socketio.on('card_data')
 def handle_card_data(data):
-    # global game_state
-    print("Received hands", data)
+
+    # Check if bet has been made if not toss result
+    if not game_state.round_started:
+        return
+    
     parsed_data = game_state.process_data(data)
-    print("Parsed: ", parsed_data)
     game_state.update_hands(parsed_data)
     player_hands = game_state.get_player_hands()
-    optimal_actions, dealer_hand, count = game_state.get_processed_play()
+    optimal_actions, count = game_state.get_processed_play()
 
     optimal_play = []
     for i in range(len(optimal_actions)):
         optimal_play.append({"id": i+1, "action": optimal_actions[i]})
 
-    html = render_template('partials/_player_toggle_info.html', player_hands=player_hands, optimal_play=optimal_play, dealer=dealer_hand, count=count)
-    print(html)
+    html = render_template('partials/_player_toggle_info.html', player_hands=player_hands, optimal_play=optimal_play, count=count)
     turbo.push(turbo.replace(html, target='player-toggle-info'))
 
 

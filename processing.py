@@ -46,6 +46,7 @@ class GameState:
         # Player + Dealer info
         self.curr_hands = []
         self.dealer_hand = {}
+        self.round_started = False
 
         # Basic Strategy tables
         self.hard_total = {

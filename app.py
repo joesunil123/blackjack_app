@@ -159,9 +159,9 @@ def handle_hand_result():
     hand_id = request.form.get("hand_id", type=int)
     outcome = request.form.get('result')
 
-    if not game_state.is_full_hand(hand_id-1):
-        flash("Incorrect password")
-        return redirect(url_for("curr_game"))
+    # if not game_state.is_full_hand(hand_id-1):
+    #     flash("Incorrect password")
+    #     return redirect(url_for("curr_game"))
 
     if outcome == 'win':
         outcome = proc.Outcome.WIN
@@ -187,6 +187,7 @@ def handle_card_data(data):
 
     # Check if bet has been made if not toss result
     if not game_state.round_started:
+        print("Game not started")
         return
     
     parsed_data = game_state.process_data(data)

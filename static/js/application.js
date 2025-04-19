@@ -1,4 +1,4 @@
-import { updateWinningsColor } from "./ui.js";
+import { updateWinningsColor, bindInfoToggle} from "./ui.js";
 import { renderWinningsChart } from "./chart.js";
 
 document.addEventListener("turbo:load", () => {
@@ -10,4 +10,13 @@ document.addEventListener("turbo:load", () => {
     console.log("Doing load");
   updateWinningsColor(winningsValue);
   renderWinningsChart();
+  bindInfoToggle();
 })
+
+document.addEventListener("DOMContentLoaded", bindInfoToggle);
+document.addEventListener("turbo:before-stream-render", () => {
+  requestAnimationFrame(() => {
+    console.log("Before stream");
+    bindInfoToggle();
+  });
+});

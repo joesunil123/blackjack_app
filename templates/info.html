@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block title %}Info{% endblock %}
+
+{% block content %}
+  <div style="width: 100%; display: flex; justify-content: flex-start; padding: 20px 0 0 20px;">
+  </div>
+
+  <h1 style="text-transform: capitalize; text-align: center;">{{ topic.replace('-', ' ') if topic else 'Information' }}</h1>
+  <div id="info" style="max-width: 800px; margin: 0 auto; text-align: left; background: #ffffff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); max-height: 70vh; overflow-y: auto;">
+    {% if topic == 'player-position' %}
+      <div style="margin-top: 20px; text-align: center;">
+        <img src="/static/player_positions.png" alt="Blackjack Player Positions Diagram" style="max-width: 100%; border-radius: 8px; box-shadow: 0 0 8px rgba(0,0,0,0.1);">
+      </div>
+    {% endif %}
+    {% if content %}
+      {% for line in content.split('\n') %}
+        {% set stripped = line.strip() %}
+        {% if stripped.split('.')[0].isdigit() and stripped.startswith(stripped.split('.')[0] + '.') %}
+          <h2 style="margin: 1rem 0 0.6rem; font-size: 1.5rem; font-weight: bold;">{{ line }}</h2>
+        {% elif stripped.endswith(':') %}
+          <p style="font-weight: bold; margin: 0.2rem 0 0.2rem;">{{ line[:-1] }}</p>
+        {% elif stripped.startswith('-') or stripped.startswith('*') %}
+          <p style="margin: 2px 0 2px 20px;">{{ line }}</p>
+        {% elif stripped == '' %}
+          <br>
+        {% else %}
+          <p>{{ line }}</p>
+        {% endif %}
+      {% endfor %}
+    {% else %}
+      <p>No information available.</p>
+    {% endif %}
+  </div>
+
+  <div style="width: 100%; display: flex; justify-content: flex-start; padding: 20px 0 20px 20px;">
+    <a href="{{ url_for('game_settings')}}" style="background-color: #6c757d; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;">Return</a>
+  </div>
+{% endblock %}
+
+{% block head %}{% endblock %}

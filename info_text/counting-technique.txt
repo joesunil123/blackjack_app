@@ -1,0 +1,43 @@
+1. Basic Strategy
+Basic Strategy is the mathematically optimal way to play every hand in Blackjack based on the player's cards and the dealer’s visible card. It does not involve card counting but instead relies on a decision chart that minimizes the house edge.
+Pros:
+- Easy to learn with a reference chart
+- Significantly reduces house edge (to under 1%)
+Cons:
+- Doesn't shift odds in the player's favor
+- Requires memorization or chart consultation
+
+2. Hi-Lo Counting System
+The Hi-Lo system is a popular card counting strategy that assigns point values to cards in order to track the ratio of high to low cards remaining in the deck.
+Point Values:
+- 2 through 6 = +1
+- 7 through 9 = 0
+- 10, J, Q, K, A = -1
+As cards are dealt, the running count is updated. To get the true count, divide the running count by the estimated number of decks remaining. Players increase their bets and adjust play when the true count is high, indicating an advantage.
+Pros:
+- Simple and effective for beginners
+- Backed by years of use and analysis
+Cons:
+- Still requires practice to master
+- Casinos may identify and restrict players who use it
+
+3. Omega II Counting System
+The Omega II is a more advanced balanced counting system that assigns different weights to various cards to improve accuracy and predictive power.
+Point Values:
+- 2, 3, 7 = +1
+- 4, 5, 6 = +2
+- 9 = -1
+- 10, J, Q, K = -2
+- 8 and Ace = 0
+The count must also be converted into a true count by dividing by the number of remaining decks. Omega II allows for more precise play adjustments but is more complex than Hi-Lo.
+Pros:
+- Higher accuracy and edge potential
+- Used by professional counters
+Cons:
+- More difficult to learn and apply
+- Easier for casinos to detect due to complexity
+
+4. Which Strategy Should You Use?
+- Choose **Basic Strategy** if you're a casual player looking to minimize losses.
+- Use **Hi-Lo** if you're ready to gain a modest edge with moderate effort.
+- Try **Omega II** if you’re experienced, disciplined, and want to push your advantage further.

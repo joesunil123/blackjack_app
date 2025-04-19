@@ -1,0 +1,122 @@
+/* ===== Global Layout ===== */
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background-color: #f4f4f4;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    font-size: 20px;
+  }
+  
+  .content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  /* ===== Home Button ===== */
+  .home-button {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    background-color: #007bff;
+    color: white;
+    padding: 10px 20px;
+    text-decoration: none;
+    border-radius: 5px;
+  }
+  
+  .home-button:hover {
+    background-color: #0056b3;
+  }
+  
+  /* ===== Index Page ===== */
+  h1 {
+    font-size: 2.5rem;
+    margin-bottom: 30px;
+  }
+  
+  .begin-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 15px 30px;
+    font-size: 1.2rem;
+    border-radius: 8px;
+    text-decoration: none;
+    transition: background-color 0.3s;
+  }
+  
+  .begin-button:hover {
+    background-color: #218838;
+  }
+  
+  /* ===== Game Settings Form ===== */
+  form {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    font-size: 20px;
+  }
+  
+  .field {
+    display: flex;
+    gap: 5px;
+    flex-direction: column;
+  }
+  
+  .label-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  
+  .info-icon {
+    font-size: 1rem;
+    color: #007bff;
+    text-decoration: none;
+  }
+  
+  .info-icon:hover {
+    text-decoration: underline;
+  }
+  
+  select,
+  input[type="number"] {
+    font-size: 1rem;
+    padding: 5px 10px;
+    width: 200px;
+    box-sizing: border-box;
+  }
+  
+  #unit-bet {
+    font-size: 18px;
+    padding: 10px;
+    width: 150px;
+    height: 30px;
+  }
+  
+  .submit-container {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+  }
+  
+  .submit-button {
+    padding: 10px 20px;
+    font-size: 1rem;
+    background-color: #28a745;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  .submit-button:hover {
+    background-color: #218838;
+  }

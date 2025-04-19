@@ -1,0 +1,17 @@
+<!-- base.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}BlackJack Buddy{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  {% block head %}{% endblock %}
+</head>
+<body>
+  <a href="{{ url_for('clear_and_home')}}" class="home-button">Home</a>
+  <div class="content">
+    {% block content %}{% endblock %}
+  </div>
+</body>
+</html>

@@ -6,7 +6,8 @@
 ## flask run
 
 # Dependencies
-## Flask
-## TurboFlask
-## SocketIO
-## EventLet
+## eventlet
+## flask
+## turbo_flask
+## flask_socketio
+## gunicorn

@@ -33,6 +33,7 @@ class GameState:
         # Display parameters
         self.profits = deque()
         self.curr_bet = 0
+        self.round_start = False
 
         # Intermediate data
         self.curr_count = 0
@@ -46,7 +47,6 @@ class GameState:
         # Player + Dealer info
         self.curr_hands = []
         self.dealer_hand = {}
-        self.round_started = False
 
         # Basic Strategy tables
         self.hard_total = {
@@ -154,8 +154,8 @@ class GameState:
 
         self.curr_hands = []
         self.dealer_hand = {}
+        self.round_start = False
 
-        self.round_started = False
     
     # Updating game state
     def place_bet(self, new_bet):
@@ -164,7 +164,7 @@ class GameState:
         self.curr_round_cards_seen = 0
         self.curr_round_count_change = 0
         self.doubled_hands = set()
-        self.round_started = True
+        self.round_start = True
                 
     def hand_outcome(self, outcome: Outcome, id):
         if outcome == Outcome.DOUBLE:
@@ -176,6 +176,7 @@ class GameState:
             self.doubled_hands.remove(id)
             net_bet *= 2
 
+        print(id)
         del self.curr_hands[id]
         
         if outcome == Outcome.WIN:
@@ -199,9 +200,9 @@ class GameState:
             if self.cards_seen >= self.num_shoes * 52:
                 self.cards_seen = 0
                 self.curr_count = 0
-            
-            self.round_started = False
 
+            self.round_start = False
+            
         if len(self.profits) > MAX_DISPLAY_WINNINGS:
             self.profits.popleft()
 
@@ -220,9 +221,13 @@ class GameState:
             (num_cards, count_change) = self.process_hand(player_data["hands"])
             temp_seen += num_cards
             temp_change += count_change
-            
+        
+        if self.curr_round_cards_seen == temp_seen and self.curr_round_count_change == temp_change:
+            return False
+        
         self.curr_round_cards_seen = temp_seen
         self.curr_round_count_change = temp_change
+        return True
 
     def process_hand(self, hands):
         cards_seen = 0
@@ -281,7 +286,7 @@ class GameState:
         return num_cards >= 2
     
     def get_current_bet(self):
-        return self.curr_bet * (len(self.curr_hands) + len(self.doubled_hands))
+        return self.curr_bet * (max(1, len(self.curr_hands)) + len(self.doubled_hands))
 
     def get_optimal_bet(self):
         true_count = self.get_true_count()
@@ -412,7 +417,7 @@ class GameState:
             else:
                 string_plays.append(f"Dealer shows {dealer_card}, Basic Strategy suggests {old_play.value}, but since the count is {count}, you should deviate to play {new_play.value}")
 
-        return (string_plays, count)
+        return (string_plays, count, dealer_card)
 
 
 

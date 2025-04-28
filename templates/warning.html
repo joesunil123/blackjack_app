@@ -1,0 +1,67 @@
+{% extends "base.html" %}
+
+{% block title %}Gambling Warning{% endblock %}
+
+{% block head %}
+<style>
+  .warning-container {
+    max-width: 600px;
+    margin: 5rem auto;
+    padding: 2rem;
+    background-color: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    text-align: center;
+    font-family: Arial, sans-serif;
+  }
+
+  .warning-container h1 {
+    font-size: 2.5rem;
+    color: #d32f2f;
+    margin-bottom: 20px;
+  }
+
+  .warning-container p {
+    font-size: 1.1rem;
+    margin-bottom: 15px;
+    color: #333;
+  }
+
+  .continue-button {
+    background-color: #28a745;
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    font-size: 1.1rem;
+    border-radius: 8px;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    display: inline-block;
+    margin-top: 20px;
+  }
+
+  .continue-button:hover {
+    background-color: #218838;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+  <div class="warning-container">
+    <h1>⚠️ Responsible Gaming Warning</h1>
+    <p>
+      Gambling can be addictive and harmful. If you or someone you know is struggling with a gambling problem,
+      help is available 24/7.
+    </p>
+    <p>
+      Call the National Problem Gambling Helpline at 
+      <strong>1-800-GAMBLER (1-800-426-2537)</strong>.
+    </p>
+    <p>
+      Please play responsibly and know your limits.
+    </p>
+
+    <a href="{{ url_for('game_settings')}}" class="continue-button">Continue</a>
+  </div>
+{% endblock %}

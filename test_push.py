@@ -4,6 +4,7 @@ from collections import deque
 import random
 
 # Connect to your Flask-SocketIO server
+# TO COPY
 sio = socketio.Client()
 
 @sio.event
@@ -15,6 +16,7 @@ def disconnect():
     print("Disconnected from server")
 
 sio.connect("http://127.0.0.1:5050/")  # Adjust port if different
+# END TO COPY
 
 
 cards = deque(["8", "A", "4", "3", "6", "10", "4", "8", "5"])
@@ -46,13 +48,16 @@ while cards:
 
     time.sleep(0.2)
 
-
+    # TO COPY
     # Emit the event your server listens for
     print("Sending card_data event...")
     sio.emit("card_data", sample_data)
 
     # Wait a bit to allow processing
     time.sleep(0.2)
+    #END TO COPY
 
 # Done!
+    # TO COPY
 sio.disconnect()
+# END TO COPY

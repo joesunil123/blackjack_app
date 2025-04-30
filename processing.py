@@ -1,7 +1,32 @@
 
 import math
 from enum import Enum
-from collections import deque
+from collections import deque, Counter
+import json
+
+class ExactDictConsensus:
+    def __init__(self, window_size=5):
+        self.window = deque(maxlen=window_size)
+
+    def update(self, card_freq_dict):
+        print("LENGHT OF WINDOW: ", len(self.window))
+        # Serialize dictionary to JSON string for hashing in Counter
+        serialized = json.dumps(card_freq_dict, sort_keys=True)
+        self.window.append(serialized)
+
+        return self.get_consensus()
+
+    def get_consensus(self):
+        """
+        Returns the most common dictionary (deserialized).
+        """
+        if not self.window:
+            return None
+
+        counts = Counter(self.window)
+        most_common_serialized, _ = counts.most_common(1)[0]
+        return json.loads(most_common_serialized)
+
 
 # Constants
 MAX_DISPLAY_WINNINGS = 10
@@ -43,6 +68,8 @@ class GameState:
         self.curr_round_cards_seen = 0
         self.curr_round_count_change = 0
         self.doubled_hands = set()
+        self.curr_hand_window = ExactDictConsensus(5)
+        self.dealer_hand_window = ExactDictConsensus(5)
 
         # Player + Dealer info
         self.curr_hands = []
@@ -155,6 +182,8 @@ class GameState:
         self.curr_hands = []
         self.dealer_hand = {}
         self.round_start = False
+        self.curr_hand_window = ExactDictConsensus(5)
+        self.dealer_hand_window = ExactDictConsensus(5)
 
     
     # Updating game state
@@ -176,7 +205,6 @@ class GameState:
             self.doubled_hands.remove(id)
             net_bet *= 2
 
-        print(id)
         del self.curr_hands[id]
         
         if outcome == Outcome.WIN:
@@ -217,19 +245,19 @@ class GameState:
             temp_seen += num_cards
             temp_change += count_change
 
-        if self.curr_round_cards_seen > temp_seen:
-            return False
-
-        if self.curr_round_cards_seen == temp_seen and self.curr_round_count_change == temp_change:
-            return False
 
         for player_data in data:
             if player_data["id"] == "dealer":
-                self.dealer_hand = player_data["hands"][0]
+                self.dealer_hand_window.update(player_data["hands"][0])
+                self.dealer_hand = self.dealer_hand_window.get_consensus()
             if player_data["id"] == str(self.player_pos):
-                self.curr_hands = player_data["hands"]
-        
-        
+                new_hand = []
+                for hand in player_data["hands"]:
+                    self.curr_hand_window.update(hand)
+                    new_hand.append(self.curr_hand_window.get_consensus())
+                print(new_hand)
+                self.curr_hands = new_hand
+            
         
         self.curr_round_cards_seen = temp_seen
         self.curr_round_count_change = temp_change

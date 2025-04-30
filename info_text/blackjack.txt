@@ -15,7 +15,6 @@ Example:
 The main goal is to beat the dealer by:
 - Getting a total higher than the dealer’s hand without exceeding 21
 - Or, if the dealer busts (goes over 21) and you don’t
-
 If your total goes over 21, you bust and automatically lose, no matter what the dealer has.
 
 4. Player Actions

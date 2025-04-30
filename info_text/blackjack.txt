@@ -1,0 +1,63 @@
+1. What is Blackjack?
+
+Blackjack is a fast-paced card game where the goal is to beat the dealer by having a hand value as close to 21 as possible — without going over.
+
+It’s typically played with 1 to 8 decks of 52 cards and is one of the most popular casino games worldwide due to its mix of luck, strategy, and low house edge.
+
+2. How Cards Are Valued
+
+- Number cards (2–10) are worth their face value
+- Face cards (Jack, Queen, King) are each worth 10
+- Aces are special — they can be worth either 1 or 11, whichever is more favorable for your hand
+
+Example:
+- A hand of Ace + 7 = 18 (soft 18)
+- A hand of 10 + 8 = 18 (hard 18)
+
+3. Objective and Basic Rules
+
+The main goal is to beat the dealer by:
+- Getting a total higher than the dealer’s hand **without exceeding 21**
+- Or, if the dealer busts (goes over 21) and you don’t
+
+If your total goes over 21, you **bust** and automatically lose, no matter what the dealer has.
+
+4. Player Actions
+
+On your turn, you can:
+
+- **Hit:** Ask for another card
+- **Stand:** End your turn and keep your hand as is
+- **Double Down:** Double your bet, take one more card, and then stand
+- **Split:** If you have two of the same value (e.g., 8–8), you can split into two separate hands
+- **Surrender:** Forfeit half your bet to fold the hand early (not allowed at all tables)
+
+5. What is a Blackjack?
+
+A “Blackjack” is when your first two cards are an **Ace and any 10-point card** (10, J, Q, or K). This is the strongest hand and typically pays out **3:2**, unless the dealer also has a Blackjack — then it’s a tie.
+
+6. Dealer Rules
+
+- The dealer must hit until their hand totals **17 or higher**
+- In most games, the dealer stands on all 17s (including “soft” 17 with an Ace), but this can vary by table
+
+7. Outcomes
+
+Here’s how a round can end:
+
+- **Win:** Your hand is higher than the dealer’s or the dealer busts
+- **Lose:** Your hand busts or is lower than the dealer’s
+- **Push:** Your hand and the dealer’s hand have the same total — you keep your bet, but don’t win extra
+
+8. Basic Tips for Beginners
+
+- Always hit if your total is 11 or less — you can’t bust
+- Stand on 17 or more if the dealer shows a weak card (2–6)
+- Use a strategy chart to help guide decisions based on your hand and the dealer’s upcard
+- Don’t take insurance — it’s usually a losing bet in the long run
+
+9. Why Blackjack Is Unique
+
+Unlike most casino games, **Blackjack can be beaten with skill**. Players who learn proper strategy — and advanced techniques like card counting — can reduce the house edge or even gain an advantage.
+
+It’s a game of both luck and skill — and one of the few where smart play truly pays off.

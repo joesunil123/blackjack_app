@@ -213,17 +213,23 @@ class GameState:
         temp_change = 0
 
         for player_data in data:
+            (num_cards, count_change) = self.process_hand(player_data["hands"])
+            temp_seen += num_cards
+            temp_change += count_change
+
+        if self.curr_round_cards_seen > temp_seen:
+            return False
+
+        if self.curr_round_cards_seen == temp_seen and self.curr_round_count_change == temp_change:
+            return False
+
+        for player_data in data:
             if player_data["id"] == "dealer":
                 self.dealer_hand = player_data["hands"][0]
             if player_data["id"] == str(self.player_pos):
                 self.curr_hands = player_data["hands"]
-            
-            (num_cards, count_change) = self.process_hand(player_data["hands"])
-            temp_seen += num_cards
-            temp_change += count_change
         
-        if self.curr_round_cards_seen == temp_seen and self.curr_round_count_change == temp_change:
-            return False
+        
         
         self.curr_round_cards_seen = temp_seen
         self.curr_round_count_change = temp_change

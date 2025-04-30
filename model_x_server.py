@@ -38,7 +38,7 @@ def connect():
 def disconnect():
     print("Disconnected from server")
 
-sio.connect("http://172.25.3.39:5050")  # Adjust port if different
+sio.connect("http://127.0.0.1:5050/")  # Adjust port if different
 
 """
 Camera Setup
@@ -91,6 +91,8 @@ def regex(s):
     if match:
         return match.group(0)
     elif s:
+        if s[0] == 'K' or s[0] == 'Q' or s[0] == 'J':
+            return '10'
         return s[0]
     else:
         return ''  # for empty strings

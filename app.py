@@ -153,7 +153,7 @@ def curr_game():
         rounds=rounds,
         curr_bet=curr_bet,
         player_hands=player_hands,
-        dealer=dealer_card,
+        dealer_card =dealer_card,
         optimal_play=optimal_play,
         count=count
     )

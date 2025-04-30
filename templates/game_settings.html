@@ -2,7 +2,11 @@
 
 {% block title %}Game Settings{% endblock %}
 
+
 {% block content %}
+<a id="top-right-button" href="{{ url_for('info') }}?topic=blackjack">
+  New to Blackjack?
+</a>
 <h1>Game Settings</h1>
 <form action="{{ url_for('game_settings')}}" method="POST">
   <div class="field">
@@ -70,6 +74,22 @@
 {% endblock %}
 
 {% block head %}
+
+<style>
+  #top-right-button {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: #6c757d;
+    color: white;
+    padding: 6px 12px;
+    text-decoration: none;
+    border-radius: 5px;
+    font-size: 0.9rem;
+    z-index: 1000;
+  }
+</style>
+
 <script>
   function toggleCountBasedOption() {
     const counting = document.getElementById("counting-technique");

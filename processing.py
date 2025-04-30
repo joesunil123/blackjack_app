@@ -4,7 +4,7 @@ from enum import Enum
 from collections import deque, Counter
 import json
 
-class ExactDictConsensus:
+class CardConsensus:
     def __init__(self, window_size=5):
         self.window = deque(maxlen=window_size)
 
@@ -68,8 +68,8 @@ class GameState:
         self.curr_round_cards_seen = 0
         self.curr_round_count_change = 0
         self.doubled_hands = set()
-        self.curr_hand_window = ExactDictConsensus(5)
-        self.dealer_hand_window = ExactDictConsensus(5)
+        self.curr_hand_window = CardConsensus(5)
+        self.dealer_hand_window = CardConsensus(5)
 
         # Player + Dealer info
         self.curr_hands = []
@@ -182,8 +182,8 @@ class GameState:
         self.curr_hands = []
         self.dealer_hand = {}
         self.round_start = False
-        self.curr_hand_window = ExactDictConsensus(5)
-        self.dealer_hand_window = ExactDictConsensus(5)
+        self.curr_hand_window = CardConsensus(5)
+        self.dealer_hand_window = CardConsensus(5)
 
     
     # Updating game state
@@ -228,6 +228,9 @@ class GameState:
             if self.cards_seen >= self.num_shoes * 52:
                 self.cards_seen = 0
                 self.curr_count = 0
+
+            self.curr_hand_window = CardConsensus(5)
+            self.dealer_hand_window = CardConsensus(5)
 
             self.round_start = False
             

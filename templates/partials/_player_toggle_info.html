@@ -4,7 +4,7 @@
     {% for hand in player_hands %}
       <div class="p-3 border rounded bg-light mb-3">
         <h5>Hand: {{ hand.id }}</h5>
-        <p>Player showing {{ hand.hand }}, Dealer showing {{ dealer_card }}</p>
+        <p>Player showing {{ hand.hand }}</p>
         <form action="{{ url_for('handle_hand_result') }}" method="POST" class="d-flex justify-content-between gap-2 mt-2">
           <input type="hidden" name="hand_id" value="{{ hand.id }}">
           <button name="result" value="win" class="btn btn-success w-100">Win</button>

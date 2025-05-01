@@ -56,9 +56,5 @@ while True:
 
     # Wait a bit to allow processing
     time.sleep(0.2)
-    #END TO COPY
-
-# Done!
-    # TO COPY
+    
 sio.disconnect()
-# END TO COPY

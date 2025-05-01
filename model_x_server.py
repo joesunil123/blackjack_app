@@ -97,167 +97,168 @@ def regex(s):
     else:
         return ''  # for empty strings
 
-"""
-Detection Code
-"""
-all_boxes = []
-fb_boxes  = []
-seen_cls = set()
-coords_to_cls_conf = {}
-cls_to_coords = {}
+while True:
+    """
+    Detection Code
+    """
+    all_boxes = []
+    fb_boxes  = []
+    seen_cls = set()
+    coords_to_cls_conf = {}
+    cls_to_coords = {}
 
-# Capture frame
-ret, frame = cap.read()
-if not ret:
-    print("Error: Failed to grab frame.")
-    exit(0)
+    # Capture frame
+    ret, frame = cap.read()
+    if not ret:
+        print("Error: Failed to grab frame.")
+        exit(0)
 
-# Perform detections
-result = model(frame)[0]
+    # Perform detections
+    result = model(frame)[0]
 
-# Establish all_boxes
-for i in range(len(result.boxes)):
-    # Get detection data
-    box = result.boxes[i]
-    curr_cls = int(box.cls)
-    curr_conf = float(box.conf)
-    curr_x1, curr_y1, curr_x2, curr_y2 = map(int,box.xyxy[0])
-    coords = (curr_x1, curr_y1, curr_x2, curr_y2)
+    # Establish all_boxes
+    for i in range(len(result.boxes)):
+        # Get detection data
+        box = result.boxes[i]
+        curr_cls = int(box.cls)
+        curr_conf = float(box.conf)
+        curr_x1, curr_y1, curr_x2, curr_y2 = map(int,box.xyxy[0])
+        coords = (curr_x1, curr_y1, curr_x2, curr_y2)
 
-    # Case 1: Threshold out low confidence scores
-    if curr_conf <= thresh:
-        continue
-
-    # Case 2: Resolve Conflicting Predictions
-    if coords in coords_to_cls_conf:
-        past_cls, past_conf = coords_to_cls_conf[coords]
-
-        # Our current prediction for this box is better than our past one.
-        if curr_conf > past_conf:
-            coords_to_cls_conf[coords] = (curr_cls, curr_conf)
-
-        # Continue regardless of if there is an update or not
-        continue
-
-    # Case 3: Repeat Detections
-    if curr_cls in seen_cls:
-        # Get past data
-        past_x1, past_y1, past_x2, past_y2 = cls_to_coords[curr_cls]
-        # NOTE: fb = full body
-        fb_x1, fb_y1 = min(curr_x1, past_x1), min(curr_y1, past_y1)
-        fb_x2, fb_y2 = max(curr_x2, past_x2), max(curr_y2, past_y2)
-        # Determine if vertical or horizontal and proceed accordingly
-        vertical = abs(curr_x2 - curr_x1) < abs(curr_y2 - curr_y1)
-        x_dist, y_dist = abs(fb_x2 - fb_x1), abs(fb_y2 - fb_y1)
-        if debug:
-            print(x_dist)
-            print(y_dist)
-        if (vertical and x_dist <= fb_x) or (not vertical and y_dist <= fb_y):
-            # The repeat detection is the same card, so create a fb_box
-            fb_coords = (fb_x1, fb_y1, fb_x2, fb_y2)
-            fb_box    = Box(fb_coords, curr_cls, curr_conf)
-            fb_boxes.append(fb_box)
+        # Case 1: Threshold out low confidence scores
+        if curr_conf <= thresh:
             continue
 
-    # Base Case: New Card Detected (Update local structures)
+        # Case 2: Resolve Conflicting Predictions
+        if coords in coords_to_cls_conf:
+            past_cls, past_conf = coords_to_cls_conf[coords]
 
-    # Add the cls to the seen_cls
-    seen_cls.add(curr_cls)
+            # Our current prediction for this box is better than our past one.
+            if curr_conf > past_conf:
+                coords_to_cls_conf[coords] = (curr_cls, curr_conf)
 
-    # Add coords to the map
-    coords_to_cls_conf[coords] = (curr_cls, curr_conf)
+            # Continue regardless of if there is an update or not
+            continue
 
-    # Add cls and coords to map
-    cls_to_coords[curr_cls] = coords
+        # Case 3: Repeat Detections
+        if curr_cls in seen_cls:
+            # Get past data
+            past_x1, past_y1, past_x2, past_y2 = cls_to_coords[curr_cls]
+            # NOTE: fb = full body
+            fb_x1, fb_y1 = min(curr_x1, past_x1), min(curr_y1, past_y1)
+            fb_x2, fb_y2 = max(curr_x2, past_x2), max(curr_y2, past_y2)
+            # Determine if vertical or horizontal and proceed accordingly
+            vertical = abs(curr_x2 - curr_x1) < abs(curr_y2 - curr_y1)
+            x_dist, y_dist = abs(fb_x2 - fb_x1), abs(fb_y2 - fb_y1)
+            if debug:
+                print(x_dist)
+                print(y_dist)
+            if (vertical and x_dist <= fb_x) or (not vertical and y_dist <= fb_y):
+                # The repeat detection is the same card, so create a fb_box
+                fb_coords = (fb_x1, fb_y1, fb_x2, fb_y2)
+                fb_box    = Box(fb_coords, curr_cls, curr_conf)
+                fb_boxes.append(fb_box)
+                continue
 
-    # Add box to all_boxes
-    all_boxes.append(Box(coords, curr_cls, curr_conf))
-    
+        # Base Case: New Card Detected (Update local structures)
 
-"""
-Data Processing
-"""
-# Find the dealers hand using fb_boxes
-y_tol = 60
-y_vals = []
-for box in fb_boxes:
-    _, y1, _, y2 = box.box
-    mid_y = (y1 + y2) / 2
-    y_vals.append(mid_y)
-    # print(f"fb_box = {box}, mid_y = {mid_y}")
-y_vals.sort()
+        # Add the cls to the seen_cls
+        seen_cls.add(curr_cls)
 
-# Find the middle element of the sorted y_vals
-try:
-    avg_y = int(y_vals[len(y_vals) // 2])
-except:
-    avg_y = 0
+        # Add coords to the map
+        coords_to_cls_conf[coords] = (curr_cls, curr_conf)
 
-for box in all_boxes:
-    _, y1, _, y2 = box.box
-    mid_y = (y1 + y2) / 2
-    if (mid_y <= avg_y - y_tol) or (avg_y + y_tol <= mid_y):
-        box.dealer_box = True
-        # print(f"dealers hand = {box}")
+        # Add cls and coords to map
+        cls_to_coords[curr_cls] = coords
 
-# Clustering
-tl_coords = []
-dealer_cards = []
-for box in all_boxes:
-    # Keep only the x1 coordinate
-    if not box.dealer_box:
-        x1, _, _, _ = box.box
-        tl_coords.append((x1,box))
-    else:
-        dealer_cards.append(box)
+        # Add box to all_boxes
+        all_boxes.append(Box(coords, curr_cls, curr_conf))
+        
 
-# Sort the tl coords to then cluster
-tl_coords.sort(key = lambda x: x[0])
+    """
+    Data Processing
+    """
+    # Find the dealers hand using fb_boxes
+    y_tol = 60
+    y_vals = []
+    for box in fb_boxes:
+        _, y1, _, y2 = box.box
+        mid_y = (y1 + y2) / 2
+        y_vals.append(mid_y)
+        # print(f"fb_box = {box}, mid_y = {mid_y}")
+    y_vals.sort()
 
-# Cluster assuming the boxes have a distance of x_tol between them
-try:
-    clusters = [[tl_coords[0]]]
-    for i in range(1, len(tl_coords)):
-        prev = tl_coords[i - 1][0]
-        curr = tl_coords[i][0]
-        if curr - prev > x_tol:
-            # Start a new cluster
-            clusters.append([tl_coords[i]])
+    # Find the middle element of the sorted y_vals
+    try:
+        avg_y = int(y_vals[len(y_vals) // 2])
+    except:
+        avg_y = 0
+
+    for box in all_boxes:
+        _, y1, _, y2 = box.box
+        mid_y = (y1 + y2) / 2
+        if (mid_y <= avg_y - y_tol) or (avg_y + y_tol <= mid_y):
+            box.dealer_box = True
+            # print(f"dealers hand = {box}")
+
+    # Clustering
+    tl_coords = []
+    dealer_cards = []
+    for box in all_boxes:
+        # Keep only the x1 coordinate
+        if not box.dealer_box:
+            x1, _, _, _ = box.box
+            tl_coords.append((x1,box))
         else:
-            # Add to current cluster
-            clusters[-1].append(tl_coords[i])
-except:
-    clusters = [[]]
+            dealer_cards.append(box)
 
-"""
-Data Transfer
-"""
-dealer_hand = [regex(str(model.names[box.cls_id])) for box in dealer_cards]
-player_hands = [{"id" : "dealer", "hand": dealer_hand}]
-counter = 1
-for cluster in clusters:
-    hand = []
-    for elt in cluster:
-        box = elt[1]
-        rank = regex(str(model.names[box.cls_id]))
-        hand.append(rank)
-    player_hands.append({"id" : counter, "hand": hand})
-    counter += 1
+    # Sort the tl coords to then cluster
+    tl_coords.sort(key = lambda x: x[0])
 
-data = {"player_hands" : player_hands}
+    # Cluster assuming the boxes have a distance of x_tol between them
+    try:
+        clusters = [[tl_coords[0]]]
+        for i in range(1, len(tl_coords)):
+            prev = tl_coords[i - 1][0]
+            curr = tl_coords[i][0]
+            if curr - prev > x_tol:
+                # Start a new cluster
+                clusters.append([tl_coords[i]])
+            else:
+                # Add to current cluster
+                clusters[-1].append(tl_coords[i])
+    except:
+        clusters = [[]]
 
-# Print data to CLI
-print(f"Player Hands after Processing = {player_hands}")
- 
-"""
-Server Comms
-"""
-# Emit the event your server listens for
-print("Sending card_data event...")
-sio.emit("card_data", data)
+    """
+    Data Transfer
+    """
+    dealer_hand = [regex(str(model.names[box.cls_id])) for box in dealer_cards]
+    player_hands = [{"id" : "dealer", "hand": [dealer_hand]}]
+    counter = 1
+    for cluster in clusters:
+        hand = []
+        for elt in cluster:
+            box = elt[1]
+            rank = regex(str(model.names[box.cls_id]))
+            hand.append(rank)
+        player_hands.append({"id" : str(counter), "hand": [hand]})
+        counter += 1
 
-# Wait a bit to allow processing
-time.sleep(2)
+    data = {"player_hands" : player_hands}
+
+    # Print data to CLI
+    print(f"Player Hands after Processing = {player_hands}")
+    
+    """
+    Server Comms
+    """
+    # Emit the event your server listens for
+    print("Sending card_data event...")
+    sio.emit("card_data", data)
+
+    # Wait a bit to allow processing
+    time.sleep(0.2)
 
 # Done!
 sio.disconnect()

@@ -140,7 +140,7 @@ def curr_game():
     rounds = [f"{i+1}" for i in range(len(winnings_history))]
     curr_bet = game_state.get_current_bet()
     player_hands = game_state.get_player_hands()
-    optimal_actions, count, dealer_card = game_state.get_processed_play()
+    optimal_actions, count = game_state.get_processed_play()
 
     optimal_play = []
     for i in range(len(optimal_actions)):
@@ -153,7 +153,6 @@ def curr_game():
         rounds=rounds,
         curr_bet=curr_bet,
         player_hands=player_hands,
-        dealer_card =dealer_card,
         optimal_play=optimal_play,
         count=count
     )
@@ -194,13 +193,13 @@ def handle_card_data(data):
         return
 
     player_hands = game_state.get_player_hands()
-    optimal_actions, count, dealer_card = game_state.get_processed_play()
+    optimal_actions, count = game_state.get_processed_play()
 
     optimal_play = []
     for i in range(len(optimal_actions)):
         optimal_play.append({"id": i+1, "action": optimal_actions[i]})
     print("PUSHING")
-    html = render_template('partials/_player_toggle_info.html', player_hands=player_hands, optimal_play=optimal_play, count=count, dealer_card = dealer_card)
+    html = render_template('partials/_player_toggle_info.html', player_hands=player_hands, optimal_play=optimal_play, count=count)
     turbo.push(turbo.replace(html, target='player-toggle-info'))
 
 

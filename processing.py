@@ -248,23 +248,35 @@ class GameState:
             temp_seen += num_cards
             temp_change += count_change
 
-
+        change_occurred = False
         for player_data in data:
             if player_data["id"] == "dealer":
                 self.dealer_hand_window.update(player_data["hands"][0])
-                self.dealer_hand = self.dealer_hand_window.get_consensus()
+                new_dealer_hand = self.dealer_hand_window.get_consensus()
+                change_occurred = change_occurred or (new_dealer_hand != self.dealer_hand)
+                self.dealer_hand = new_dealer_hand
+            
+                
             if player_data["id"] == str(self.player_pos):
                 new_hand = []
                 for hand in player_data["hands"]:
                     self.curr_hand_window.update(hand)
                     new_hand.append(self.curr_hand_window.get_consensus())
-                print(new_hand)
+
+                if len(new_hand) != len(self.curr_hands):
+                    change_occurred = True
+                else:
+                    for i in range(len(new_hand)):
+                        if new_hand[i] != self.curr_hands[i]:
+                            change_occurred = True
+                            break
+
                 self.curr_hands = new_hand
-            
         
+        change_occurred = change_occurred or (self.curr_round_cards_seen != temp_seen) or (self.curr_round_count_change != temp_change)
         self.curr_round_cards_seen = temp_seen
         self.curr_round_count_change = temp_change
-        return True
+        return change_occurred
 
     def process_hand(self, hands):
         cards_seen = 0
@@ -454,7 +466,7 @@ class GameState:
             else:
                 string_plays.append(f"Dealer shows {dealer_card}, Basic Strategy suggests {old_play.value}, but since the count is {count}, you should deviate to play {new_play.value}")
 
-        return (string_plays, count, dealer_card)
+        return (string_plays, count)
 
 
 

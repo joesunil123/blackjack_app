@@ -49,6 +49,8 @@ while True:
             ],
         }
 
+        print(sample_data)
+
         time.sleep(0.2)
 
         # TO COPY

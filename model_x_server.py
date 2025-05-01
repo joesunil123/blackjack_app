@@ -20,8 +20,8 @@ from collections import defaultdict, deque
 Model Setup
 """
 print("Loading Model...")
-# model_path = "./best.engine" 
-model_path = "./best_large.pt"
+model_path = "./best_large.engine" 
+# model_path = "./best_large.pt"
 model = YOLO(model_path)
 print("Done! \n")
 
